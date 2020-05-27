@@ -1,5 +1,9 @@
 KNOWN ISSUES:
 
+- After first playback beckend crash (MPV controller crash)
+    POSSIBLE SOLUTION:
+    Quit request by MPV OSD should not destroy MPV controller instance
+
 - Windows:  FrontEnd <-> ConduitD via TCP socket instead of LocalSocket (NamedPipe)
     POSSIBLE SOLUTION:
     1) rewrite ConduitD to listen on LocalSocket (
