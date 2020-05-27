@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/image">
+        <file alias="app">image/app.png</file>
+        <file alias="bplayer128">image/bplayer-128.png</file>
+    </qresource>
+    <qresource prefix="/font">
+        <file alias="font-roboto-nerd">font/font-roboto-nerd.ttf</file>
+    </qresource>
+</RCC>
