@@ -1,0 +1,10 @@
+
+
+TO-DO:
+- logging system to stdout even on release build with classes none/info/debug/trace
+
+
+WORK-IN-PROCESS:
+
+
+DONE:

@@ -1,0 +1,5 @@
+NOTES:
+
+Windows 10 Console color support:
+    Use this registry to activate color support in console
+    𝗛𝗞𝗘𝗬_𝗖𝗨𝗥𝗥𝗘𝗡𝗧_𝗨𝗦𝗘𝗥\𝗖𝗼𝗻𝘀𝗼𝗹𝗲\𝗩𝗶𝗿𝘁𝘂𝗮𝗹𝗧𝗲𝗿𝗺𝗶𝗻𝗮𝗹𝗟𝗲𝘃𝗲𝗹 = 𝗱𝘄𝗼𝗿𝗱:𝟬𝟬𝟬𝟬𝟬𝟬𝟬𝟭
