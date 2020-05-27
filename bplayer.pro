@@ -6,4 +6,5 @@ SUBDIRS += \
 
 DISTFILES += \
     common/ToDo.txt \
+    common/KnownIssues.txt \
     common/Notes.txt

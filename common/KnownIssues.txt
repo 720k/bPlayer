@@ -1,0 +1,8 @@
+KNOWN ISSUES:
+
+- Windows:  FrontEnd <-> ConduitD via TCP socket instead of LocalSocket (NamedPipe)
+    POSSIBLE SOLUTION:
+    1) rewrite ConduitD to listen on LocalSocket (
+    2) lower device port privileges with .inf files or registry hack so ConduitD becomes useless
+
+- No visual feedback when seeking video forward, it takes a lot of time
