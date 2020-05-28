@@ -7,6 +7,7 @@ TO-DO:
 - MPV realtime info (position, state) forwarded to frontend (necessary for audio)
 - Common/ should be a library!
 - Reimplement StreamProtocol::Size with local cachinh because MPV call it so many times
+- convert project to CMAKE
 
 WORK-IN-PROGRESS:
 
