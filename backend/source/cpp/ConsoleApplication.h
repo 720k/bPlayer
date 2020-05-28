@@ -5,6 +5,8 @@
 #include "AbstractSocket.h"
 
 #include <QCoreApplication>
+#include <QLoggingCategory>
+Q_DECLARE_LOGGING_CATEGORY(catApp)
 
 class TestProtocol;
 class ControlProtocol;

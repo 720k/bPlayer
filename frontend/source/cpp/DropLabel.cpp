@@ -16,7 +16,6 @@ void DropLabel::dropEvent(QDropEvent *event)    {
         QStringList pathList;
         QList<QUrl> urlList = mimeData->urls();
         for (const auto& url : urlList) {
-//            qDebug() << url.toLocalFile();
             emit droppedFile(url.toLocalFile());
         }
     }

@@ -3,6 +3,7 @@
 #include "AbstractSocket.h"
 #include <QtCore/QObject>
 #include <QTcpSocket>
+#include <QLoggingCategory>
 
 class TcpSocket : public AbstractSocket
 {
@@ -26,4 +27,4 @@ private:
     // AbstractSocket interface
 protected:
 };
-
+Q_DECLARE_LOGGING_CATEGORY(catTcpSocket)

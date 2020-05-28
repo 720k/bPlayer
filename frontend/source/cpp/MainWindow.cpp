@@ -13,6 +13,7 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QFontDatabase>
+Q_LOGGING_CATEGORY(catApp, "App")
 
 void MainWindow::init() {
     localServer_ = std::make_unique<QLocalServer>();
@@ -33,7 +34,7 @@ void MainWindow::init() {
 
     int id = QFontDatabase::addApplicationFont(":/font/font-roboto-nerd");
     if (id < 0) {
-        qDebug() << "Can't Add font Roboto nerd";
+        qCWarning(catApp).noquote() << "Can't Add font Roboto nerd";
     } else {
         QString family = QFontDatabase::applicationFontFamilies(id).at(0);
         QFont nerd(family);
@@ -73,7 +74,7 @@ void MainWindow::updateWidgetStatus() {
 
 void MainWindow::newClient() {
     if (!localServer_->hasPendingConnections()) return;
-    CON << cGRN << "Server > Info : Accepted " << cRST << " new Client";
+    qCInfo(catApp).noquote() << "New Client accepted";
     auto socket = localServer_->nextPendingConnection();
     //#todo: server must accept only one connection.
     clientSocket_->setSocket(socket);
@@ -103,16 +104,16 @@ void MainWindow::on_connectButton_clicked() {
             clientSocket_->disconnectFromServer();
             localServer_->close();
             online_=false;
-            CON << cRED << "Server > Info: Offline" << cEOL;
+            qCDebug(catApp).noquote() << "Local Server Offline";
             state_ = Offline;
         } else {
             if (localServer_->listen(AbstractSocket::testPort())) {
                 online_=true;
                 state_ = Online;
-                CON << cGRN << "Server > Info: Online" << cRST << " listening on: " << localServer_->serverName() << cEOL;
+                qCDebug(catApp).noquote() << "Local Server ready, listening on: " << localServer_->serverName();
             } else {
                 state_ = Offline;
-                CON << cRED << "Server > Error: " << cRST << localServer_->errorString() << " on port: " << localServer_->serverName() << cEOL;
+                qCDebug(catApp).noquote() << "Local Server error: " << localServer_->errorString() << " on port: " << localServer_->serverName() << cEOL;
             }
         }
         updateWidgetStatus();
@@ -148,12 +149,12 @@ void MainWindow::socketStateChanged(AbstractSocket::SocketState state) {
         if (state == AbstractSocket::SocketState::UnconnectedState) {
             online_ = false;
             state_ = Offline;
-            CON << cRED << "Client > Info: Offline" << cEOL;
+            qCDebug(catApp).noquote() << "Client disconnected";
         }
         if (state == AbstractSocket::SocketState::ConnectedState) {
             online_ = true;
             state_ = Online;
-            CON << cGRN << "Client > Info: Online" << cRST << " connected to localhost:" << localServer_->serverName() << cEOL;
+            qCDebug(catApp).noquote() << "Client connected to localhost:" << localServer_->serverName();
         }
         updateWidgetStatus();
     }

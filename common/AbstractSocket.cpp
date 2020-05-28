@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QIODevice>
 
+Q_LOGGING_CATEGORY(catSocket, "Socket")
+
 AbstractSocket::AbstractSocket(QObject *parent) : QObject(parent), socket_(nullptr), state_(UnconnectedState)  {
     readBuffer_.reserve(128 * 1024);
 }
@@ -43,10 +45,10 @@ QString AbstractSocket::testPort() {
 
 void AbstractSocket::writeMessage(const QByteArray &message) {
     if (!socket_->isOpen()) {
-        CON << cLV0 << "Socket > Warning: sendMessage with socket closed." <<cEOL;
+        qCWarning(catSocket).noquote() << "sendMessage with socket closed.";
         return;
     }
-    CON << cLV0 <<"Socket <==" << Utils::printableBA(message) << cEOL;
+    qCDebug(catSocket).noquote() <<"<=="<< Utils::printableBA(message);
     readBuffer_.clear();
     stream_ << message;
     flushSocket();
@@ -64,12 +66,10 @@ QString AbstractSocket::serverName() const {
 
 void AbstractSocket::readyRead() {
     stream_.startTransaction();
-    int size = readBuffer_.size();
     stream_ >> readBuffer_;
     //#todo if readBuffer_ is not enough for the request?
-    CON << cLV0 << "Socket > Read " <<  readBuffer_.size() - size << cEOL;
     if (!stream_.commitTransaction())  return; // message complete?
-    CON << cLV0 << "Socket -->" << Utils::printableBA(readBuffer_) << cEOL;
+    qCDebug(catSocket).noquote() << "-->" << Utils::printableBA(readBuffer_);
     emit messageReady(readBuffer_);
     readBuffer_.clear();
 }
@@ -83,11 +83,11 @@ void AbstractSocket::disconnected() {
 }
 
 void AbstractSocket::internalStateChanged(AbstractSocket::SocketState socketState) {
-    CON << cLV0 << "Socket > state:" << socketState << " - " << stateString(socketState) << cEOL;
+    qCDebug(catSocket).noquote() << stateString(socketState);
 #ifdef Q_OS_WIN
     extern void GetLastErrorStdStr();
     if (socketState == AbstractSocket::SocketState::ClosingState) {
-        qDebug() << "about to close";
+        qCDebug(catSocket).noquote() << "About to close";
         Utils::PrintLastErrorString();
     }
 #endif

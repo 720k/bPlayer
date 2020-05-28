@@ -1,5 +1,7 @@
 #include "LocalSocket.h"
 
+Q_LOGGING_CATEGORY(catLocalSocket, "LocalSocket")
+
 #define SKT (dynamic_cast<QLocalSocket*>(socket_))
 using Parent = AbstractSocket;
 
@@ -42,7 +44,7 @@ void LocalSocket::disconnected() {
 }
 
 void LocalSocket::error(QLocalSocket::LocalSocketError socketError) {
-    qDebug() << "[ERROR] " << socketError << " " << socket_->errorString();
+    qCDebug(catLocalSocket) << "[ERROR] " << socketError << " " << socket_->errorString();
 }
 
 void LocalSocket::stateChanged(QLocalSocket::LocalSocketState socketState) {

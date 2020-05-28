@@ -1,8 +1,11 @@
 #pragma once
 
 #include <QObject>
+#include <QLoggingCategory>
+
 #include "Message.h"
 #include "ProtocolBase.h"
+Q_DECLARE_LOGGING_CATEGORY(catTestProtocol)
 
 class TestProtocol : public ProtocolBase{
     Q_OBJECT

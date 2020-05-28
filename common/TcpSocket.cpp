@@ -1,8 +1,10 @@
 #include "TcpSocket.h"
 
+
 #define SKT (dynamic_cast<QTcpSocket*>(socket_))
 using Parent = AbstractSocket;
 
+Q_LOGGING_CATEGORY(catTcpSocket, "TcpSocket")
 
 TcpSocket::TcpSocket(QObject *parent) : AbstractSocket (parent) {
     Parent::setSocket(new QTcpSocket());
@@ -43,7 +45,7 @@ void TcpSocket::disconnected() {
 }
 
 void TcpSocket::error(QAbstractSocket::SocketError socketError) {
-    qDebug() << "[ERROR] " << socketError << " " << socket_->errorString();
+    qCDebug(catTcpSocket) << "[ERROR] " << socketError << " " << socket_->errorString();
 }
 
 void TcpSocket::stateChanged(QAbstractSocket::SocketState socketState) {

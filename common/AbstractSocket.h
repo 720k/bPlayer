@@ -3,6 +3,7 @@
 #include <QtCore/QObject>
 #include <QByteArray>
 #include <QDataStream>
+#include <QLoggingCategory>
 
 class AbstractSocket : public QObject
 {
@@ -46,4 +47,6 @@ protected:
     QIODevice           *socket_;
     SocketState         state_;
 };
+
+Q_DECLARE_LOGGING_CATEGORY(catSocket)
 

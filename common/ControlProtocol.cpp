@@ -2,6 +2,7 @@
 #include "ControlProtocol.h"
 #include <QDebug>
 
+Q_LOGGING_CATEGORY(catControlProtocol, "Protocol.control")
 
 QMap<int, QString> ControlProtocol::IDNames_ {
     {ID::MediaStart,        "MediaStart"},
@@ -24,10 +25,9 @@ void ControlProtocol::dispatchMessage(const Message &msg) {
     switch  (id) {
         case ID::MediaStart :
             emit onMediaStart();
-            qDebug().noquote() << objectName() << "." << IDNames_.value(id);
+            qCDebug(catControlProtocol).noquote() << IDNames_.value(id);
             break;
         default:
-            qDebug().noquote() << objectName() << "Unknown message";
             break;
     }
 }

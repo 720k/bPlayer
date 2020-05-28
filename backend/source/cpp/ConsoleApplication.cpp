@@ -15,6 +15,8 @@
 #include "MpvController.h"
 #include "MpvSynchronousSocketStream.h"
 
+Q_LOGGING_CATEGORY(catApp, "App")
+
 void ConsoleApplication::init()    {
     mpvController_ = new MpvController(this);
     mpvSynchronousSocketStream_ = new MpvSynchronousSocketStream(this);
@@ -42,7 +44,7 @@ void ConsoleApplication::init()    {
 
     if (portName_.isEmpty())    portName_ = portNameFromExistingSocket(AbstractSocket::testPort());
     if (portName_.isEmpty())    portName_ = portNameFromProcess("remote-viewer");
-    qDebug() << "PORT NAME = " << portName_;
+    qCInfo(catApp) << "PORT NAME = " << portName_;
     socket_.connectToServer(portName_);
 }
 
@@ -85,11 +87,11 @@ bool ConsoleApplication::isFirstInstance() {
     static QSharedMemory sm("bplayer-backend-unique-instance-key");
     if (sm.attach()) {
         //QMessageBox::information(nullptr, applicationName(), "Application already runnning");
-        qDebug() << "SHARED MEMORY ERROR:\n" << sm.error() << " - " << sm.errorString() << "\nkey: " << sm.key() << "\nNative Key: " << sm.nativeKey();
+        qCWarning(catApp).noquote() << "SHARED MEMORY ERROR:\n" << sm.error() << " - " << sm.errorString() << "\nkey: " << sm.key() << "\nNative Key: " << sm.nativeKey();
         return false;
     }
     if (!sm.create(1)) {
-        qDebug() << applicationName() << " Application > Error : Unable to create single instance.";
+        qCWarning(catApp).noquote() << applicationName() << " Application > Error : Unable to create single instance.";
         return false;
     }
     return true;
@@ -101,12 +103,12 @@ void ConsoleApplication::setPortName(const QString &portname) {
 
 void ConsoleApplication::socketStateChanged(AbstractSocket::SocketState state) {
     if (state == AbstractSocket::SocketState::ConnectedState) {
-        CON << cGRN << "Client : Info : ONLINE" << cRST << "Connected to: " << socket_.serverName() << cEOL;
+        qCDebug(catApp).noquote() <<  "Client Ready, connected to: " << socket_.serverName();
     }
     if (state == AbstractSocket::SocketState::UnconnectedState) {
-        CON << cRED << "Client : Info : OFFLINE" << cEOL;
+        qCDebug(catApp).noquote() << "Client disconnected";
     }
-    qDebug() << " Socket > state : " << AbstractSocket::stateString(state);
+    qCDebug(catApp).noquote() << " Socket state: " << AbstractSocket::stateString(state);
 }
 
 //void ConsoleApplication::error(QLocalSocket::LocalSocketError socketError)  {

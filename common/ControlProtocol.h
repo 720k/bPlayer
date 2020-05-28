@@ -2,6 +2,8 @@
 
 #include "ProtocolBase.h"
 #include <QObject>
+#include <QLoggingCategory>
+Q_DECLARE_LOGGING_CATEGORY(catControlProtocol)
 
 class ControlProtocol : public ProtocolBase {
     Q_OBJECT
@@ -17,4 +19,5 @@ private:
     void                        dispatchMessage(const Message& msg) override;
     static  QMap<int, QString>  IDNames_;
 };
+
 

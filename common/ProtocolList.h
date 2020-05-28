@@ -5,7 +5,7 @@
 #include <QtCore/QObject>
 #include <QDebug>
 #include <QMap>
-
+#include <QLoggingCategory>
 class ProtocolList : public QObject
 {
     Q_OBJECT
@@ -15,8 +15,8 @@ public:
 
     void                        insert(ProtocolBase *protocol, const ProtocolBase::Range& overrideRange = ProtocolBase::InvalidRange );
     void                        insert(ProtocolBase *protocol, std::initializer_list<int> l );
-    void                        print(const QString& msg, const QString& prefix = protocolName_);
-    void                        print(const QMap<int, ProtocolBase*>& table, const QString& title = QString()) const;
+    void                        printList(const QString& msg, const QString& prefix = protocolName_);
+    void                        printList(const QMap<int, ProtocolBase*>& table) const;
     void                        printDispatchTable() const;
 signals:
     void                        messageReady(QByteArray message);
@@ -33,4 +33,4 @@ private:
     static QString              protocolName_;
     QMap<int, ProtocolBase*>    protocols_;
 };
-
+Q_DECLARE_LOGGING_CATEGORY(catProtocolList)

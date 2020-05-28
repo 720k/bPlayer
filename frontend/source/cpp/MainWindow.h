@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-
+#include <QLoggingCategory>
 #include "LocalSocket.h"
 #include "TcpSocket.h"
 #include "ProtocolList.h"
@@ -57,3 +57,5 @@ private:
     void                            init();
     bool                            isServerMode();
 };
+
+Q_DECLARE_LOGGING_CATEGORY(catApp)

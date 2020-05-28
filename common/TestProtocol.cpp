@@ -1,6 +1,7 @@
 #include "TestProtocol.h"
 #include "Utils.h"
 #include <QDebug>
+Q_LOGGING_CATEGORY(catTestProtocol,"Protocol.test")
 
 QMap<int, QString> TestProtocol::IDNames_ {
         {ID::None,              "None"},
@@ -27,12 +28,12 @@ void TestProtocol::dispatchMessage(const Message &msg) {
     QDataStream stream(msg.content());
     switch  (id) {
         case ID::None :
-            qDebug().noquote() << objectName() << "." << IDNames_.value(id);
+            qCDebug(catTestProtocol).noquote() <<  IDNames_.value(id);
             break;
         case ID::String : {
                 QString s;
                 stream >> s;
-                qDebug().noquote() << objectName() << "." << IDNames_.value(id) << ":" << s;
+                qCDebug(catTestProtocol).noquote() << IDNames_.value(id) << ":" << s;
                 }
             break;
         case ID::Ping : {
@@ -43,13 +44,12 @@ void TestProtocol::dispatchMessage(const Message &msg) {
                     emit sendMessage( makePing ( bounce, counter-1, time) ); // ping back
                 } else {
                     double microsecs = static_cast<double>(Utils::getMicroSeconds()-time)/(bounce*1000.0);
-                    qDebug().noquote() << objectName() << "." << IDNames_.value(id) << QString(": %1 milliSecs ").arg(Utils::printableNumber(microsecs));
+                    qCDebug(catTestProtocol).noquote() << IDNames_.value(id) << QString(": %1 milliSecs ").arg(Utils::printableNumber(microsecs));
                     emit pingReady(microsecs);
                 }
             }
         break;
         default:
-            qDebug().noquote() << objectName() << "Unknown message";
             break;
     }
 }
