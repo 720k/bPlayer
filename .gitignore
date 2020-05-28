@@ -1,2 +1,6 @@
 # ignore bplayer build/run configurations
 /bplayer.pro.user
+/bplayer.pro.user.*
+
+#ingore qtcreator temporarty savings
+*.autosave

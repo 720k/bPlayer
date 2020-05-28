@@ -1,7 +1,6 @@
 
 
 TO-DO:
-- logging system to stdout even on release build with classes none/info/debug/trace
 - MPV controller : logic start/stop/pause
 - MPV controller : add stream seeking visual feedback
 - MPV realtime info (position, state) forwarded to frontend (necessary for audio)
@@ -10,6 +9,6 @@ TO-DO:
 - convert project to CMAKE
 
 WORK-IN-PROGRESS:
-
+- logging system to stdout even on release build with classes none/info/debug/trace
 
 DONE:
