@@ -67,33 +67,17 @@ void MpvController::mpvEventReady_cb(void *ctx)     {
 
 // METHODS
 void MpvController::loadFile(const QString &fileName, const QString& protocol)  {
-//    char buf[512];
     uri_ = (protocol.isEmpty() ? fileName : QString("%1://%2").arg(protocol).arg(fileName)).toLocal8Bit();
     qDebug() << "URI: " << uri_;
     const char *args[] = {"loadfile", uri_.constData(), nullptr};
     mpv_command_async(mpvHandle_, 0, args);
 }
 
-//void MpvController::testFile()  {
-//    const char *args[] = {"loadfile", "/home/mas/Video/test.mkv", nullptr};
-//    mpv_command_async(mpvHandle_, 0, args);
-//}
-
-//void MpvController::open(char *uri)  {
-//    const char *args[] = {"loadfile", uri, nullptr};
-//    mpv_command_async(mpvHandle_, 0, args);
-//}
-
-
-
 void MpvController::registerHandler(const QString& name, void *instance, mpv_stream_cb_open_ro_fn open_fn) {
     mpv_stream_cb_add_ro(mpvHandle_, name.toLocal8Bit(), instance,  open_fn);
 }
 
 void MpvController::mediaStart() {
-    //    auto media = QByteArray(MPVStreamer::protocolPrefix()+"://Fake");
-    //auto media = QByteArray("bee://media");
-    //qDebug() << Q_FUNC_INFO << "args: " << media;
     const char *args[] = {"loadfile", "bee://media", nullptr};
     mpv_command_async(mpvHandle_, 0, args);
 }

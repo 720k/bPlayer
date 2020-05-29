@@ -5,6 +5,10 @@ SUBDIRS += \
     backend
 
 DISTFILES += \
-    common/ToDo.txt \
-    common/KnownIssues.txt \
-    common/Notes.txt
+    text/ToDo.txt \
+    text/KnownIssues.txt \
+    text/Notes.txt \
+    text/mpv--input-cmdlist.txt \
+    text/mpv--list-options.txt \
+    text/mpv--list-properties.txt \
+    text/mpv--list-protocols.txt

@@ -1,0 +1,56 @@
+Protocols:
+
+ cdda://
+ rtmp://
+ rtsp://
+ http://
+ https://
+ mms://
+ mmst://
+ mmsh://
+ mmshttp://
+ rtp://
+ httpproxy://
+ rtmpe://
+ rtmps://
+ rtmpt://
+ rtmpte://
+ rtmpts://
+ srtp://
+ gopher://
+ data://
+ lavf://
+ ffmpeg://
+ udp://
+ ftp://
+ tcp://
+ tls://
+ unix://
+ sftp://
+ md5://
+ concat://
+ avdevice://
+ av://
+ dvb://
+ file://
+ dvd://
+ dvdnav://
+ file://
+ bd://
+ br://
+ bluray://
+ bdnav://
+ brnav://
+ bluraynav://
+ archive://
+ memory://
+ hex://
+ null://
+ mf://
+ edl://
+ file://
+ fd://
+ fdclose://
+ appending://
+
+Total: 52 protocols

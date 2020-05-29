@@ -15,8 +15,6 @@ public:
     void            loadFile(const QString& filename, const QString& protocol=QString());
     static  void    controllerWakeup(void *ctx);
     void            registerHandler(const QString &name, void *instance, mpv_stream_cb_open_ro_fn open_fn);
-//    void            testFile();
-//    void            open(char *uri);
 signals:
     void            open(const QString& filename);
     void            replyReady();
