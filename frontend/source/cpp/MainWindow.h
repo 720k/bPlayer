@@ -37,15 +37,13 @@ private slots:
 
     void on_selectFileNameButton_clicked();
 
-    void on_localServerCheckBox_clicked();
 
     void on_playButton_clicked();
 
 private:
     Ui::MainWindow *ui;
-    std::unique_ptr<QLocalServer>   localServer_;
     bool                            online_;
-    AbstractSocket                  *clientSocket_;
+    AbstractSocket                  *socket_;
     enum ConnectionState            { Offline=0xd40000, Online=0xfff70a, Ready=0x00d600 };
 
     ProtocolList                    protocolList_;
@@ -55,9 +53,8 @@ private:
     ConnectionState                 state_;
 
     void                            updateWidgetStatus();
-    void                            newClient();
     void                            init();
-    bool                            isServerMode();
+    bool                            isLocalSocket();
 };
 
 Q_DECLARE_LOGGING_CATEGORY(catApp)

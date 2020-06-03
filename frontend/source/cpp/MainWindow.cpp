@@ -16,11 +16,10 @@
 Q_LOGGING_CATEGORY(catApp, "App")
 
 void MainWindow::init() {
-    localServer_ = std::make_unique<QLocalServer>();
-    connect(localServer_.get(), &QLocalServer::newConnection, this, &MainWindow::newClient);
 
     connectionTypeChanged();
-
+    connect(ui->tcpipSocketRadioButton, &QRadioButton::clicked,     this, &MainWindow::connectionTypeChanged );
+    connect(ui->localSocketRadioButton, &QRadioButton::clicked,     this, &MainWindow::connectionTypeChanged );
     // populate BProtocol
     testProtocol_ = new TestProtocol(&protocolList_);
     controlProtocol_ = new ControlProtocol(&protocolList_);
@@ -42,13 +41,13 @@ void MainWindow::init() {
     }
 }
 
-bool MainWindow::isServerMode() {
-    return ui->localServerCheckBox->isChecked();
+bool MainWindow::isLocalSocket() {
+    return ui->localSocketRadioButton->isChecked();
 }
 
-MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent)  , ui(new Ui::MainWindow),online_(false), clientSocket_(nullptr), state_(Offline)  {
+MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent)  , ui(new Ui::MainWindow), online_(false), socket_(nullptr), state_(Offline)  {
     ui->setupUi(this);
-    ui->portEdit->setText(AbstractSocket::testPort());
+    ui->portEdit->setText("/tmp/frontend");
     connect(ui->sendButton, &QPushButton::clicked, this, &MainWindow::on_inputEdit_returnPressed);
     updateWidgetStatus();
     init();
@@ -65,20 +64,14 @@ MainWindow::~MainWindow() {
 
 void MainWindow::updateWidgetStatus() {
     bool offline = !online_;
-    ui->localServerCheckBox->setEnabled(offline);
-    ui->portEdit->setEnabled(offline && !ui->localServerCheckBox->isChecked());
+    ui->tcpipSocketRadioButton->setEnabled(offline);
+    ui->localSocketRadioButton->setEnabled(offline);
+    ui->portEdit->setEnabled(offline);
     ui->portLabel->setEnabled(ui->portEdit->isEnabled());
     ui->connectButton->setText(online_ ? "Disconnect" : "Connect");
     ui->interfaceBox->setEnabled(online_);
 }
 
-void MainWindow::newClient() {
-    if (!localServer_->hasPendingConnections()) return;
-    qCInfo(catApp).noquote() << "New Client accepted";
-    auto socket = localServer_->nextPendingConnection();
-    //#todo: server must accept only one connection.
-    clientSocket_->setSocket(socket);
-}
 
 void MainWindow::on_inputEdit_returnPressed() {
     testProtocol_->sendString(ui->inputEdit->text());
@@ -99,43 +92,28 @@ void MainWindow::pingReady(double microsecs) {
 }
 
 void MainWindow::on_connectButton_clicked() {
-    if (isServerMode()) {
-        if (online_) {
-            clientSocket_->disconnectFromServer();
-            localServer_->close();
-            online_=false;
-            qCDebug(catApp).noquote() << "Local Server Offline";
-            state_ = Offline;
-        } else {
-            if (localServer_->listen(AbstractSocket::testPort())) {
-                online_=true;
-                state_ = Online;
-                qCDebug(catApp).noquote() << "Local Server ready, listening on: " << localServer_->serverName();
-            } else {
-                state_ = Offline;
-                qCDebug(catApp).noquote() << "Local Server error: " << localServer_->errorString() << " on port: " << localServer_->serverName() << cEOL;
-            }
-        }
-        updateWidgetStatus();
+    if (online_) {
+        socket_->disconnectFromServer();
     } else {
-        if (online_)    clientSocket_->disconnectFromServer();
-        else            clientSocket_->connectToServer("localhost", ui->portEdit->text().toUInt());
+        if (isLocalSocket())    socket_->connectToServer(ui->portEdit->text());
+        else                    socket_->connectToServer("localhost", ui->portEdit->text().toUInt());
     }
+    updateWidgetStatus();
 }
 
 void MainWindow::connectionTypeChanged() {
     // assert: state is offline
-    if (clientSocket_) {
-        clientSocket_->disconnect(); // no strings attached
-        clientSocket_->deleteLater();
+    if (socket_) {
+        socket_->disconnect(); // no strings attached
+        socket_->deleteLater();
     }
-    if (isServerMode()) clientSocket_ = new LocalSocket();
-    else                clientSocket_ = new TcpSocket();
+    if (isLocalSocket())    socket_ = new LocalSocket();
+    else                    socket_ = new TcpSocket();
 
     // Client socket <-> BProtocol
-    connect(clientSocket_,&AbstractSocket::messageReady,   &protocolList_, &ProtocolList::decodeMessage);
-    connect(&protocolList_,&ProtocolList::messageReady,    clientSocket_, &AbstractSocket::writeMessage);
-    connect(clientSocket_,&AbstractSocket::stateChanged , this, &MainWindow::socketStateChanged);
+    connect(socket_,&AbstractSocket::messageReady,    &protocolList_, &ProtocolList::decodeMessage);
+    connect(socket_,&AbstractSocket::stateChanged,    this, &MainWindow::socketStateChanged);
+    connect(&protocolList_,&ProtocolList::messageReady,     socket_, &AbstractSocket::writeMessage);
 }
 
 void MainWindow::on_action_Open_triggered() {
@@ -145,19 +123,17 @@ void MainWindow::on_action_Open_triggered() {
 
 
 void MainWindow::socketStateChanged(AbstractSocket::SocketState state) {
-    if (!isServerMode()) { // socket status-> online/offlien
-        if (state == AbstractSocket::SocketState::UnconnectedState) {
-            online_ = false;
-            state_ = Offline;
-            qCDebug(catApp).noquote() << "Client disconnected";
-        }
-        if (state == AbstractSocket::SocketState::ConnectedState) {
-            online_ = true;
-            state_ = Online;
-            qCDebug(catApp).noquote() << "Client connected to localhost:" << localServer_->serverName();
-        }
-        updateWidgetStatus();
+    if (state == AbstractSocket::SocketState::UnconnectedState) {
+        online_ = false;
+        state_ = Offline;
+        qCDebug(catApp).noquote() << "Disconnected";
     }
+    if (state == AbstractSocket::SocketState::ConnectedState) {
+        online_ = true;
+        state_ = Online;
+        qCDebug(catApp).noquote() << "Connected to:" << socket_->serverName();
+    }
+    updateWidgetStatus();
 }
 
 void MainWindow::on_selectFileNameButton_clicked() {
@@ -165,11 +141,6 @@ void MainWindow::on_selectFileNameButton_clicked() {
                         tr("Open File"), QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).at(0),
                         tr("Video (*.mov *.mp4 *.avi *.mpeg *.mpg);Audio (*.m4a *.mp3 *.wav);Any file (*.*)"));
     ui->filenameEdit->setText(fileName);
-}
-
-void MainWindow::on_localServerCheckBox_clicked() {
-    connectionTypeChanged();
-    ui->portEdit->setEnabled(!isServerMode());
 }
 
 void MainWindow::on_playButton_clicked() {

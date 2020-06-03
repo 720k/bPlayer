@@ -44,7 +44,7 @@ void ConsoleApplication::init()    {
 
 
 
-    if (portName_.isEmpty())    portName_ = portNameFromExistingSocket(AbstractSocket::testPort());
+    if (portName_.isEmpty())    portName_ = portNameFromExistingSocket("/tmp/backend");
     if (portName_.isEmpty())    portName_ = portNameFromProcess("remote-viewer");
     qCInfo(catApp) << "PORT NAME = " << portName_;
     socket_.connectToServer(portName_);
