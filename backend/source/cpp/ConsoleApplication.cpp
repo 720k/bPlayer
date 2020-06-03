@@ -39,6 +39,8 @@ void ConsoleApplication::init()    {
     protocolList_.printDispatchTable();
 
     connect(controlProtocol_, &ControlProtocol::onMediaStart,  mpvController_, &MpvController::mediaStart);
+    connect(controlProtocol_, &ControlProtocol::onMediaStop,  mpvController_, &MpvController::mediaStop);
+    connect(controlProtocol_, &ControlProtocol::onMediaPause,  mpvController_, &MpvController::mediaPause);
 
 
 

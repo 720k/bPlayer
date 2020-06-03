@@ -21,6 +21,8 @@ signals:
     void            mpvEventReady();
 public slots:
     void            mediaStart();
+    void            mediaStop();
+    void            mediaPause(bool isPaused);
     void            quit();
 private slots:
     void            handleMpvEvents();
@@ -29,5 +31,7 @@ private:
     static void     mpvEventReady_cb(void *ctx);
     mpv_handle*     mpvHandle_;
     QByteArray      uri_;
+    // local cache:
+    int64_t         isPaused_;
 };
 

@@ -39,6 +39,8 @@ private slots:
 
     void on_localServerCheckBox_clicked();
 
+    void on_playButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     std::unique_ptr<QLocalServer>   localServer_;

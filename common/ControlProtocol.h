@@ -12,8 +12,12 @@ public:
                                 ControlProtocol(QObject* parent);
 public slots:
     void                        mediaStart();
+    void                        mediaStop();
+    void                        mediaPause(bool isPaused);
 signals:
     void                        onMediaStart();
+    void                        onMediaStop();
+    void                        onMediaPause(bool isPaused);
 
 private:
     void                        dispatchMessage(const Message& msg) override;

@@ -171,3 +171,7 @@ void MainWindow::on_localServerCheckBox_clicked() {
     connectionTypeChanged();
     ui->portEdit->setEnabled(!isServerMode());
 }
+
+void MainWindow::on_playButton_clicked() {
+    controlProtocol_->mediaPause(true);
+}

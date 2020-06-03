@@ -17,15 +17,33 @@ ControlProtocol::ControlProtocol(QObject* parent) : ProtocolBase(parent) {
 }
 
 void ControlProtocol::mediaStart()  {
-   emit sendMessage(Message::make(ID::MediaStart) );
+    emit sendMessage(Message::make(ID::MediaStart) );
+}
+
+void ControlProtocol::mediaStop() {
+    emit sendMessage(Message::make(ID::MediaStop));
+}
+
+void ControlProtocol::mediaPause(bool isPaused) {
+    emit sendMessage(Message::make(ID::MediaPause, isPaused ));
 }
 
 void ControlProtocol::dispatchMessage(const Message &msg) {
     auto id = msg.id();   //    auto content = m.content();
+     QDataStream stream(msg.content());
+    qCDebug(catControlProtocol).noquote() << IDNames_.value(id);
     switch  (id) {
         case ID::MediaStart :
             emit onMediaStart();
-            qCDebug(catControlProtocol).noquote() << IDNames_.value(id);
+            break;
+        case ID::MediaStop :
+            emit onMediaStop();
+            break;
+        case ID::MediaPause : {
+            bool isPaused;
+            stream >> isPaused;
+            emit onMediaPause(isPaused);
+            }
             break;
         default:
             break;

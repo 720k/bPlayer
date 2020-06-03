@@ -10,3 +10,5 @@ KNOWN ISSUES:
     2) lower device port privileges with .inf files or registry hack so ConduitD becomes useless
 
 - No visual feedback when seeking video forward, it takes a lot of time
+    POSSIBLE SOLUTION:
+    Use LUA script to print nerdfont character or bitmap between events SEEK -> PLAYBACKRESTART

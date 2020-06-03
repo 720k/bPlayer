@@ -22,6 +22,9 @@ MpvController::MpvController(QObject *parent) : QObject(parent)   {
     mpvHandle_ = mpv_create();
     if (!mpvHandle_)   throw std::runtime_error("can't create mpv instance");
     mpv_set_option_string(mpvHandle_, "osc", "yes");
+    mpv_set_option_string(mpvHandle_, "idle", "yes");
+    mpv_set_option_string(mpvHandle_, "border", "no");
+    mpv_set_option_string(mpvHandle_, "input-ipc-server", "/tmp/mpvsocket");
 
     // Enable default bindings, because we're lazy. Normally, a player using
     // mpv as backend would implement its own key bindings.
@@ -80,6 +83,16 @@ void MpvController::registerHandler(const QString& name, void *instance, mpv_str
 void MpvController::mediaStart() {
     const char *args[] = {"loadfile", "bee://media", nullptr};
     mpv_command_async(mpvHandle_, 0, args);
+}
+
+void MpvController::mediaStop() {
+    const char *args[] = {"stop", nullptr};
+    mpv_command_async(mpvHandle_, 0, args);
+}
+
+void MpvController::mediaPause(bool isPaused) {
+    isPaused_ = isPaused ? 1 : 0;
+    mpv_set_property_async(mpvHandle_,0,"pause",MPV_FORMAT_FLAG, &isPaused_);
 }
 
 void MpvController::quit() {
