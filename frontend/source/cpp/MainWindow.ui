@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>737</width>
-    <height>627</height>
+    <width>711</width>
+    <height>452</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MPV-STREAM-SERVER</string>
+   <string>bPlayer</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">background-color: rgb(52, 73, 94);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -25,15 +25,18 @@
         <family>RobotoMono Nerd Font Mono</family>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgb(255, 255, 255);</string>
+      </property>
       <property name="tabShape">
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="homeTab">
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(90, 87, 74);</string>
+        <string notr="true">background-color: rgb(52, 73, 94);</string>
        </property>
        <attribute name="title">
         <string> Home</string>
@@ -57,7 +60,7 @@
         <item>
          <widget class="DropLabel" name="dropLabel">
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(101, 98, 84);</string>
+           <string notr="true">background-color: rgb(44, 62, 80);</string>
           </property>
           <property name="text">
            <string/>
@@ -99,9 +102,16 @@
               <height>32</height>
              </size>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
             <property name="font">
              <font>
-              <family>FuraCode Nerd Font</family>
+              <family>RobotoMono Nerd Font</family>
+              <pointsize>18</pointsize>
              </font>
             </property>
             <property name="styleSheet">
@@ -116,8 +126,8 @@
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="stopbutton">
-            <property name="minimumSize">
+           <widget class="QToolButton" name="toolButton_3">
+            <property name="maximumSize">
              <size>
               <width>32</width>
               <height>32</height>
@@ -125,25 +135,8 @@
             </property>
             <property name="font">
              <font>
-              <family>FuraCode Nerd Font</family>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(255, 255, 255);</string>
-            </property>
-            <property name="text">
-             <string>怜</string>
-            </property>
-            <property name="autoRaise">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="toolButton_3">
-            <property name="font">
-             <font>
-              <family>FuraCode Nerd Font</family>
+              <family>RobotoMono Nerd Font</family>
+              <pointsize>18</pointsize>
              </font>
             </property>
             <property name="styleSheet">
@@ -154,6 +147,55 @@
             </property>
             <property name="autoRaise">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="volumeSlider">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="invertedAppearance">
+             <bool>false</bool>
+            </property>
+            <property name="invertedControls">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="timePosLabel">
+            <property name="styleSheet">
+             <string notr="true">color: rgb(255, 255, 255);</string>
+            </property>
+            <property name="text">
+             <string>00:00:00</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="styleSheet">
+             <string notr="true">color: rgb(255, 255, 255);</string>
+            </property>
+            <property name="text">
+             <string>/</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="timeLabel">
+            <property name="text">
+             <string>00:00:00</string>
             </property>
            </widget>
           </item>
@@ -178,9 +220,16 @@
               <height>32</height>
              </size>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
             <property name="font">
              <font>
-              <family>FuraCode Nerd Font</family>
+              <family>RobotoMono Nerd Font</family>
+              <pointsize>18</pointsize>
              </font>
             </property>
             <property name="styleSheet">
@@ -202,9 +251,16 @@
               <height>32</height>
              </size>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
             <property name="font">
              <font>
-              <family>FuraCode Nerd Font</family>
+              <family>RobotoMono Nerd Font</family>
+              <pointsize>20</pointsize>
              </font>
             </property>
             <property name="styleSheet">
@@ -219,17 +275,18 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="onlineLabel">
+           <widget class="QLabel" name="ledLabel">
             <property name="font">
              <font>
-              <family>FuraCode Nerd Font</family>
+              <family>RobotoMono Nerd Font</family>
+              <pointsize>18</pointsize>
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">color: rgb(212, 0, 0);</string>
+             <string notr="true">color: rgb(255, 255, 255);</string>
             </property>
             <property name="text">
-             <string>ﯟ</string>
+             <string>ﯦ</string>
             </property>
             <property name="margin">
              <number>5</number>
@@ -309,48 +366,7 @@
            <string>test interface</string>
           </property>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="filenameEdit">
-             <property name="text">
-              <string>/home/mas/Video/test.mkv</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="3">
-            <widget class="QPushButton" name="pingButton">
-             <property name="text">
-              <string>Ping</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="3">
-            <widget class="QPushButton" name="sendButton">
-             <property name="text">
-              <string>Send</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>resource:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="1">
-            <widget class="QLineEdit" name="inputEdit">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="placeholderText">
-              <string>write some text to send...</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
             <widget class="QSpinBox" name="bounceSpinBox">
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -361,23 +377,33 @@
             </widget>
            </item>
            <item row="0" column="2">
-            <widget class="QToolButton" name="selectFileNameButton">
+            <widget class="QPushButton" name="sendButton">
              <property name="text">
-              <string>...</string>
+              <string>Send</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="3">
-            <widget class="QPushButton" name="streamButton">
+           <item row="1" column="2">
+            <widget class="QPushButton" name="pingButton">
              <property name="text">
-              <string>Stream</string>
+              <string>Ping</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
+           <item row="1" column="0">
             <widget class="QLabel" name="label_3">
              <property name="text">
               <string>bounces</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="inputEdit">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="placeholderText">
+              <string>write some text to send...</string>
              </property>
             </widget>
            </item>
@@ -405,9 +431,12 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>737</width>
+     <width>711</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255, 255, 255);</string>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">

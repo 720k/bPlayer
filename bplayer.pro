@@ -1,8 +1,9 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    TempLocalSocketBridge \
     frontend \
-    backend
+    backend \
 
 DISTFILES += \
     text/ToDo.txt \

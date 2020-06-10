@@ -1,10 +1,13 @@
 #include "MpvController.h"
 #include "ConsoleColors.h"
+#include "ControlProtocol.h"
 #include <QFileInfo>
 #include <QDebug>
 #include <QJsonDocument>
 #include <mpv/qthelper.hpp>
 
+QMap<int,int> MpvController::eventConversionTable_ = {
+};
 
 MpvController::MpvController(QObject *parent) : QObject(parent)   {
     // Qt sets the locale in the QApplication constructor, but libmpv requires
@@ -34,16 +37,26 @@ MpvController::MpvController(QObject *parent) : QObject(parent)   {
     // --input-vo-keyboard on the manpage.
     mpv_set_option_string(mpvHandle_, "input-vo-keyboard", "yes");
 
+    //    mpv_set_option_string(m_mpvHandle, "cache", "yes");
+//    mpv_set_option_string(m_mpvHandle, "cache-secs", "5");
+//    mpv_set_option_string(m_mpvHandle, "cache-pause", "yes");
+//    mpv_set_option_string(m_mpvHandle, "cache-pause-initial", "yes");
+//    mpv_set_option_string(m_mpvHandle, "cache-pause-wait", "5");
+//    mpv_set_option_string(m_mpvHandle, "stream-buffer-size", "256000000");
+
+
+
+
 //    // Let us receive property change events with MPV_EVENT_PROPERTY_CHANGE if
 //    // this property changes.
-//    mpv_observe_property(m_mpvHandle, 0, "time-pos", MPV_FORMAT_DOUBLE);
+//    mpv_observe_property(mpvHandle_, 0, "time-pos", MPV_FORMAT_DOUBLE);
+//    mpv_observe_property(mpvHandle_, 0, "duration", MPV_FORMAT_DOUBLE);
 
 //    mpv_observe_property(m_mpvHandle, 0, "track-list", MPV_FORMAT_NODE);
 //    mpv_observe_property(m_mpvHandle, 0, "chapter-list", MPV_FORMAT_NODE);
 
 //    // Request log messages with level "info" or higher.
 //    // They are received as MPV_EVENT_LOG_MESSAGE.
-//    mpv_request_log_messages(m_mpvHandle, "info");
     mpv_request_log_messages(mpvHandle_, "info"); // info
 
     // From this point on, the wakeup function will be called. The callback
@@ -116,14 +129,11 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
             mpv_event_property *prop = (mpv_event_property *)event->data;
             if (strcmp(prop->name, "time-pos") == 0) {
                 if (prop->format == MPV_FORMAT_DOUBLE) {
-                    //double time = *(double *)prop->data;
-                    //                std::stringstream ss;
-                    //                ss << "At: " << time;
-                    //                statusBar()->showMessage(QString::fromStdString(ss.str()));
+                    double time = *(double *)prop->data;
+                    emit eventTimePos(time);
                 } else if (prop->format == MPV_FORMAT_NONE) {
                     // The property is unavailable, which probably means playback
                     // was stopped.
-                    //                statusBar()->showMessage("");
                 }
             } else {
                 if (strcmp(prop->name, "chapter-list") == 0 || strcmp(prop->name, "track-list") == 0)   {
@@ -159,9 +169,6 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
         }
         case MPV_EVENT_LOG_MESSAGE: {
             struct mpv_event_log_message *msg = static_cast<struct mpv_event_log_message *>(event->data);
-            //        std::stringstream ss;
-            //        ss << "[" << msg->prefix << "] " << msg->level << ": " << msg->text;
-            //        append_log(QString::fromStdString(ss.str()));
             qDebug().noquote() << cYLW << "[MPV] " << msg->prefix << " > " << msg->level << ": " << QString(msg->text).trimmed() << cEOL;
             break;
         }
@@ -170,6 +177,11 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
             mpvHandle_ = nullptr;
             break;
         }
+        case MPV_EVENT_SEEK:    emit eventStateChanged(ControlProtocol::EventState::Seek);   break;
+        case MPV_EVENT_PAUSE:   emit eventStateChanged(ControlProtocol::EventState::Pause);  break;
+        case MPV_EVENT_UNPAUSE: emit eventStateChanged(ControlProtocol::EventState::Unpause);    break;
+        case MPV_EVENT_PLAYBACK_RESTART: emit eventStateChanged(ControlProtocol::EventState::PlaybackRestart); break;
+
         default: ; // Ignore uninteresting or unknown events.
     }
 }

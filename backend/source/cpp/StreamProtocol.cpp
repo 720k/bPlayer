@@ -10,10 +10,11 @@ QMap<int, QString>  StreamProtocol::IDNames_ {
     {ID::FileClose,         "FileClose"},
 };
 
-StreamProtocol::StreamProtocol(QObject *parent, MpvSynchronousSocketStream *stm) : ProtocolBase(parent), mpvSocketStreamer_(stm) {
+StreamProtocol::StreamProtocol(MpvSynchronousSocketStream *stm, QObject *parent) : ProtocolBase(parent), mpvSocketStreamer_(stm) {
      setObjectName("StreamProtocol");
      range_ = makeRange(ID::FileOpen, ID::FileClose);
      names_ = IDNames_;
+     mpvSocketStreamer_->setStreamProtocol(this);
 }
 
 void StreamProtocol::dispatchMessage(const Message &m)  {

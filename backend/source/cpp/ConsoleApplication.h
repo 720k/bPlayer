@@ -30,14 +30,20 @@ public:
 private slots:
     void                    socketStateChanged(AbstractSocket::SocketState state);
 //    void                    error(QLocalSocket::LocalSocketError socketError);
+    void                    retry();
 private:
+    enum class ConnectionState :int  { Offline=0xd40000,
+                                      Connecting=0xe67e22,
+                                      ConnectingWait,
+                                      Online=0xfff70a};
     void                    init();
     void                    closing();
     QString                 portNameFromProcess(const QString &processName);
     QString                 portNameFromExistingSocket(const QString &socketName);
+    void                    startConnecting();
 
-    bool                    singleInstance_;
-    QString                 portName_;
+    bool                            singleInstance_;
+    QString                         portName_;
     LocalSocket                     socket_;
     ProtocolList                    protocolList_;
     TestProtocol                    *testProtocol_;
@@ -45,5 +51,7 @@ private:
     StreamProtocol                  *streamProtocol_;
     MpvController*                  mpvController_;
     MpvSynchronousSocketStream*     mpvSynchronousSocketStream_;
+    ConnectionState                 connectionState_;
+    static QMap<ConnectionState,QString>        connectionStateName_;
 };
 

@@ -13,9 +13,23 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QFontDatabase>
+#include <QTimer>
+#include <chrono>
 Q_LOGGING_CATEGORY(catApp, "App")
 
+using namespace std::literals::chrono_literals;
+
+QMap<MainWindow::ConnectionState, QString>  MainWindow::stateName_ = {
+    {ConnectionState::Offline,       "Offline"},
+    {ConnectionState::Connecting,    "Connecting"},
+    {ConnectionState::ConnectingWait,"ConnectingWait"},
+    {ConnectionState::Online,        "Online"},
+    {ConnectionState::Ready,         "Ready"},
+};
+
+
 void MainWindow::init() {
+    connect(ui->sendButton, &QPushButton::clicked, this, &MainWindow::on_inputEdit_returnPressed);
 
     connectionTypeChanged();
     connect(ui->tcpipSocketRadioButton, &QRadioButton::clicked,     this, &MainWindow::connectionTypeChanged );
@@ -29,7 +43,9 @@ void MainWindow::init() {
     protocolList_.insert(streamProtocol_);
     protocolList_.printDispatchTable();
 
-    connect(testProtocol_, &TestProtocol::pingReady, this, &MainWindow::pingReady);
+    connect(testProtocol_,      &TestProtocol::pingReady,       this, &MainWindow::pingReady);
+    connect(controlProtocol_,   &ControlProtocol::onTok,        this,&MainWindow::onTok);
+    connect(controlProtocol_,   &ControlProtocol::onEventStateChanged, this, &MainWindow::onEventStateChanged);
 
     int id = QFontDatabase::addApplicationFont(":/font/font-roboto-nerd");
     if (id < 0) {
@@ -41,16 +57,21 @@ void MainWindow::init() {
     }
 }
 
-bool MainWindow::isLocalSocket() {
+bool MainWindow::isLocalSocket() const {
     return ui->localSocketRadioButton->isChecked();
 }
 
-MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent)  , ui(new Ui::MainWindow), online_(false), socket_(nullptr), state_(Offline)  {
+bool MainWindow::isOnline() const {
+    return connectionState_ == ConnectionState::Ready;
+}
+
+
+MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     ui->portEdit->setText("/tmp/frontend");
-    connect(ui->sendButton, &QPushButton::clicked, this, &MainWindow::on_inputEdit_returnPressed);
     updateWidgetStatus();
     init();
+    QTimer::singleShot(3s,this,&MainWindow::startConnecting);
 }
 
 MainWindow::~MainWindow() {
@@ -61,15 +82,19 @@ MainWindow::~MainWindow() {
 }
 
 
-
 void MainWindow::updateWidgetStatus() {
-    bool offline = !online_;
-    ui->tcpipSocketRadioButton->setEnabled(offline);
-    ui->localSocketRadioButton->setEnabled(offline);
-    ui->portEdit->setEnabled(offline);
+    bool online = isOnline();
+    ui->tcpipSocketRadioButton->setEnabled(!online);
+    ui->localSocketRadioButton->setEnabled(!online);
+    ui->portEdit->setEnabled(!online);
     ui->portLabel->setEnabled(ui->portEdit->isEnabled());
-    ui->connectButton->setText(online_ ? "Disconnect" : "Connect");
-    ui->interfaceBox->setEnabled(online_);
+    ui->connectButton->setText(online ? "Disconnect" : "Connect");
+    ui->interfaceBox->setEnabled(online);
+    // MAIN TAB
+    QColor c{ static_cast<QRgb>(connectionState_) };
+    ui->ledLabel->setStyleSheet(QString("color:%1").arg(c.name()));
+
+    ui->playButton->setText(mediaState_ == MediaState::Playing ? "":"");
 }
 
 
@@ -82,22 +107,44 @@ void MainWindow::on_pingButton_clicked() {
     testProtocol_->ping(ui->bounceSpinBox->value());
 }
 
-void MainWindow::on_streamButton_clicked() {
-    streamProtocol_->setFileName(ui->filenameEdit->text());
-    controlProtocol_->mediaStart();
-}
 
 void MainWindow::pingReady(double microsecs) {
     ui->logEdit->appendPlainText(QString("Ping came back in %1 milliSecs (average)").arg(Utils::printableNumber(microsecs)));
 }
 
-void MainWindow::on_connectButton_clicked() {
-    if (online_) {
-        socket_->disconnectFromServer();
-    } else {
-        if (isLocalSocket())    socket_->connectToServer(ui->portEdit->text());
-        else                    socket_->connectToServer("localhost", ui->portEdit->text().toUInt());
+void MainWindow::startConnecting() {
+    connectionState_ = ConnectionState::Connecting;
+    if (isLocalSocket())    socket_->connectToServer(ui->portEdit->text());
+    else                    socket_->connectToServer("localhost", ui->portEdit->text().toUInt());
+}
+
+void MainWindow::retry() {
+    if (connectionState_ == ConnectionState::ConnectingWait) {
+        startConnecting();
     }
+    updateWidgetStatus();
+}
+
+void MainWindow::startTicking() {
+    tickingTimerID_ = startTimer(1s);
+}
+
+void MainWindow::stopTicking() {
+    if (tickingTimerID_ != invalidTimerID) {
+        killTimer(tickingTimerID_);
+        tickingTimerID_ = invalidTimerID;
+    }
+}
+
+void MainWindow::timerEvent(QTimerEvent *event) {   Q_UNUSED(event)
+    controlProtocol_->tik();
+}
+
+
+
+void MainWindow::on_connectButton_clicked() {
+    if (isOnline()) closeConnection();
+    else            startConnecting();
     updateWidgetStatus();
 }
 
@@ -117,32 +164,66 @@ void MainWindow::connectionTypeChanged() {
 }
 
 void MainWindow::on_action_Open_triggered() {
-    void on_selectFileNameButton_clicked();
-    on_streamButton_clicked();
+    auto fileName = QFileDialog::getOpenFileName(this,
+                            tr("Open File"), QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).at(0),
+                            tr("Video (*.mov *.mp4 *.avi *.mpeg *.mpg);Audio (*.m4a *.mp3 *.wav);Any file (*.*)"));
+    if (fileName.isNull()) return;
+    streamProtocol_->setFileName(fileName_ = fileName);
+    controlProtocol_->mediaStart();
 }
 
 
 void MainWindow::socketStateChanged(AbstractSocket::SocketState state) {
     if (state == AbstractSocket::SocketState::UnconnectedState) {
-        online_ = false;
-        state_ = Offline;
-        qCDebug(catApp).noquote() << "Disconnected";
+        stopTicking();
+        if (connectionState_ == ConnectionState::Connecting)  {
+            connectionState_ = ConnectionState::ConnectingWait;
+            QTimer::singleShot(3s, this,  &MainWindow::retry);
+        }
+        if (connectionState_ == ConnectionState::Online || connectionState_ == ConnectionState::Ready)  {
+            startConnecting();
+        }
     }
     if (state == AbstractSocket::SocketState::ConnectedState) {
-        online_ = true;
-        state_ = Online;
-        qCDebug(catApp).noquote() << "Connected to:" << socket_->serverName();
+        connectionState_ = ConnectionState::Online;
+        startTicking();
     }
+    qCDebug(catApp).noquote() << " state > " << stateName_.value(connectionState_);
     updateWidgetStatus();
 }
 
-void MainWindow::on_selectFileNameButton_clicked() {
-    auto fileName = QFileDialog::getOpenFileName(this,
-                        tr("Open File"), QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).at(0),
-                        tr("Video (*.mov *.mp4 *.avi *.mpeg *.mpg);Audio (*.m4a *.mp3 *.wav);Any file (*.*)"));
-    ui->filenameEdit->setText(fileName);
-}
 
 void MainWindow::on_playButton_clicked() {
-    controlProtocol_->mediaPause(true);
+    if (mediaState_ == MediaState::None)    on_action_Open_triggered();
+    if (mediaState_ == MediaState::Playing) controlProtocol_->mediaPause(true);
+    if (mediaState_ == MediaState::Paused) controlProtocol_->mediaPause(false);
+}
+
+void MainWindow::closeConnection() {
+    socket_->disconnectFromServer();
+    connectionState_ = ConnectionState::Offline;
+}
+
+void MainWindow::onTok() {
+    if (connectionState_ != ConnectionState::Ready) {
+        connectionState_ = ConnectionState::Ready;
+        updateWidgetStatus();
+        stopTicking();
+    }
+}
+
+void MainWindow::onEventStateChanged(quint64 state) {
+    switch (state) {
+        case ControlProtocol::EventState::Pause:
+            mediaState_ = MediaState::Paused;
+            break;
+        case ControlProtocol::EventState::Unpause:
+        case ControlProtocol::EventState::PlaybackRestart:
+            mediaState_ = MediaState::Playing;
+            break;
+        case ControlProtocol::EventState::EndFile:
+            mediaState_ = MediaState::None;
+            break;
+    }
+    updateWidgetStatus();
 }

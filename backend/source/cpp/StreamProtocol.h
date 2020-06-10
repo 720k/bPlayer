@@ -7,7 +7,7 @@ class StreamProtocol : public ProtocolBase
     Q_OBJECT
 public:
                         enum ID {FileOpen=0x200, FileSeek, FileRead, FileSize,FileClose,};
-                                StreamProtocol(QObject *parent, MpvSynchronousSocketStream *stm);
+                                StreamProtocol(MpvSynchronousSocketStream *stm, QObject *parent=nullptr);
         void                    open(bool result);
         void                    seek(bool result);
         void                    read(qint64 result, QByteArray ba);

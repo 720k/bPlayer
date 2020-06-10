@@ -12,7 +12,7 @@ class TestProtocol : public ProtocolBase{
 public:
     enum                        ID {None=0x100,Error,String,Ping,};
 
-                                TestProtocol(QObject *parent);
+                                TestProtocol(QObject *parent = nullptr);
                                 ~TestProtocol() override = default;
 
     void                        sendString(const QString &s);

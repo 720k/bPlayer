@@ -2,8 +2,11 @@
 
 #include <QtCore/QObject>
 #include <QFile>
+#include <QMap>
 #include <mpv/client.h>
 #include <mpv/stream_cb.h>
+
+class ControProtocol;
 
 class MpvController : public QObject
 {
@@ -19,6 +22,8 @@ signals:
     void            open(const QString& filename);
     void            replyReady();
     void            mpvEventReady();
+    void            eventStateChanged(quint64 state);
+    void            eventTimePos(quint64 positionInSecs);
 public slots:
     void            mediaStart();
     void            mediaStop();
@@ -33,5 +38,7 @@ private:
     QByteArray      uri_;
     // local cache:
     int64_t         isPaused_;
+    ControProtocol  *controlProtocol_ = nullptr;
+    static QMap<int,int>   eventConversionTable_;
 };
 

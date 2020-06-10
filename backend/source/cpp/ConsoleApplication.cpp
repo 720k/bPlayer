@@ -6,6 +6,9 @@
 #include <QDebug>
 #include <iostream>
 #include <future>
+#include <chrono>
+#include <QTimer>
+
 #include <QCommandLineParser>
 #include "AbstractSocket.h"
 #include "ConsoleColors.h"
@@ -17,40 +20,51 @@
 
 Q_LOGGING_CATEGORY(catApp, "App")
 
+using namespace std::literals::chrono_literals;
+
+QMap<ConsoleApplication::ConnectionState, QString> ConsoleApplication::connectionStateName_ = {
+    {ConnectionState::Offline,       "Offline"},
+    {ConnectionState::Connecting,    "Connecting"},
+    {ConnectionState::ConnectingWait,"ConnectingWait"},
+    {ConnectionState::Online,        "Online"},
+};
+
+
+void ConsoleApplication::startConnecting() {
+    connectionState_ = ConnectionState::Connecting;
+    socket_.connectToServer(portName_);
+}
+
+
 void ConsoleApplication::init()    {
-    mpvController_ = new MpvController(this);
     mpvSynchronousSocketStream_ = new MpvSynchronousSocketStream(this);
-    streamProtocol_= new StreamProtocol(&protocolList_, mpvSynchronousSocketStream_);
-    mpvSynchronousSocketStream_->setStreamProtocol(streamProtocol_);
+    protocolList_.insert(testProtocol_=     new TestProtocol());
+    protocolList_.insert(controlProtocol_ = new ControlProtocol());
+    protocolList_.insert(streamProtocol_=   new StreamProtocol(mpvSynchronousSocketStream_));
+    protocolList_.printDispatchTable();
+
+    mpvController_ = new MpvController(this);
     mpvController_->registerHandler( mpvSynchronousSocketStream_->protocolName(), static_cast<void*>(mpvSynchronousSocketStream_), MpvSynchronousStreamInterface::open_cb);
 
     QObject::connect(qApp, &QCoreApplication::aboutToQuit, mpvController_, &MpvController::quit);
 
-    connect (&socket_, &AbstractSocket::stateChanged, this, &ConsoleApplication::socketStateChanged);
-    // Client socket <-> BProtocol
-    connect(&socket_,&AbstractSocket::messageReady,     &protocolList_, &ProtocolList::decodeMessage);
-    connect(&protocolList_,&ProtocolList::messageReady, &socket_, &AbstractSocket::writeMessage);
-
-    testProtocol_ = new TestProtocol(&protocolList_);
-    controlProtocol_ = new ControlProtocol(&protocolList_);
-    protocolList_.insert(testProtocol_);
-    protocolList_.insert(controlProtocol_);
-    protocolList_.insert(streamProtocol_);
-    protocolList_.printDispatchTable();
+    connect(&socket_,       &AbstractSocket::stateChanged,  this, &ConsoleApplication::socketStateChanged);
+    connect(&socket_,       &AbstractSocket::messageReady,  &protocolList_, &ProtocolList::decodeMessage);
+    connect(&protocolList_, &ProtocolList::messageReady,    &socket_, &AbstractSocket::writeMessage);
 
     connect(controlProtocol_, &ControlProtocol::onMediaStart,  mpvController_, &MpvController::mediaStart);
     connect(controlProtocol_, &ControlProtocol::onMediaStop,  mpvController_, &MpvController::mediaStop);
     connect(controlProtocol_, &ControlProtocol::onMediaPause,  mpvController_, &MpvController::mediaPause);
-
+    connect(mpvController_, &MpvController::eventStateChanged, controlProtocol_, &ControlProtocol::eventStateChanged);
 
 
     if (portName_.isEmpty())    portName_ = portNameFromExistingSocket("/tmp/backend");
     if (portName_.isEmpty())    portName_ = portNameFromProcess("remote-viewer");
     qCInfo(catApp) << "PORT NAME = " << portName_;
-    socket_.connectToServer(portName_);
+    startConnecting();
 }
 
-ConsoleApplication::ConsoleApplication(int &argc, char **argv) : QCoreApplication(argc,argv), singleInstance_(true), portName_("") {
+ConsoleApplication::ConsoleApplication(int &argc, char **argv) :QCoreApplication(argc,argv), singleInstance_(true), portName_(""), connectionState_(ConnectionState::Offline)  {
 }
 
 ConsoleApplication::~ConsoleApplication()   {
@@ -58,6 +72,9 @@ ConsoleApplication::~ConsoleApplication()   {
 }
 
 void ConsoleApplication::closing()  {
+    socket_.disconnectFromServer();
+    connectionState_ = ConnectionState::Offline;
+
     Utils::destroy(streamProtocol_);
     Utils::destroy(controlProtocol_);
     Utils::destroy(testProtocol_);
@@ -89,11 +106,11 @@ bool ConsoleApplication::isFirstInstance() {
     static QSharedMemory sm("bplayer-backend-unique-instance-key");
     if (sm.attach()) {
         //QMessageBox::information(nullptr, applicationName(), "Application already runnning");
-        qCWarning(catApp).noquote() << "SHARED MEMORY ERROR:\n" << sm.error() << " - " << sm.errorString() << "\nkey: " << sm.key() << "\nNative Key: " << sm.nativeKey();
+        qCWarning(catApp).noquote() << "SHARED MEMORY ERROR > \n" << sm.error() << " - " << sm.errorString() << "\nkey: " << sm.key() << "\nNative Key: " << sm.nativeKey();
         return false;
     }
     if (!sm.create(1)) {
-        qCWarning(catApp).noquote() << applicationName() << " Application > Error : Unable to create single instance.";
+        qCWarning(catApp).noquote() << applicationName() << "  Error > Unable to create single instance.";
         return false;
     }
     return true;
@@ -105,14 +122,17 @@ void ConsoleApplication::setPortName(const QString &portname) {
 
 void ConsoleApplication::socketStateChanged(AbstractSocket::SocketState state) {
     if (state == AbstractSocket::SocketState::ConnectedState) {
-        qCDebug(catApp).noquote() <<  "Client Ready, connected to: " << socket_.serverName();
+        connectionState_ = ConnectionState::Online;
     }
     if (state == AbstractSocket::SocketState::UnconnectedState) {
-        qCDebug(catApp).noquote() << "Client disconnected";
+        connectionState_ = ConnectionState::ConnectingWait;
+        QTimer::singleShot(3s, this, &ConsoleApplication::retry);
     }
-    qCDebug(catApp).noquote() << " Socket state: " << AbstractSocket::stateString(state);
+    qCDebug(catApp).noquote() << " State > " << connectionStateName_.value(connectionState_);
 }
 
-//void ConsoleApplication::error(QLocalSocket::LocalSocketError socketError)  {
-//    qDebug() <<  QString("[ERROR] %1 : %2").arg(socketError).arg(socket_.errorString());
-//}
+void ConsoleApplication::retry() {
+    if (connectionState_ == ConnectionState::ConnectingWait) {
+        startConnecting();
+    }
+}
