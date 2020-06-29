@@ -11,7 +11,7 @@ MpvSynchronousStreamInterface::MpvSynchronousStreamInterface(QObject *parent) : 
 int MpvSynchronousStreamInterface::open_cb(void *user_data, char *uri, mpv_stream_cb_info *info) {
     Q_UNUSED(uri)
     info->cookie = user_data;
-    //info->size_fn = size_cb;
+    info->size_fn = size_cb;
     info->read_fn = read_cb;
     info->seek_fn = seek_cb;
     info->close_fn = close_cb;

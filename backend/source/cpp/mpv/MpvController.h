@@ -5,6 +5,8 @@
 #include <QMap>
 #include <mpv/client.h>
 #include <mpv/stream_cb.h>
+#include <QElapsedTimer>
+
 #include <QLoggingCategory>
 Q_DECLARE_LOGGING_CATEGORY(catMpv)
 
@@ -45,6 +47,6 @@ private:
     // local cache:
     int64_t         isPaused_;
     ControProtocol  *controlProtocol_   = nullptr;
-    int64_t         playbackTime_       =0;
+    QElapsedTimer   previousTimerEvent_;
 };
 

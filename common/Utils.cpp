@@ -90,7 +90,7 @@ QString formatTime(quint64 seconds) {
     int hh = std::chrono::duration_cast<std::chrono::hours>(secs).count();
     int mm = std::chrono::duration_cast<std::chrono::minutes>(secs).count();
     int ss = seconds % 60;
-    return QString("%1:%2:%3").arg(hh,2,10,QChar('0')).arg(mm,2,10,QChar('0')).arg(ss,2,10,QChar('0'));
+    return QString("<b>%1:%2</b>.%3").arg(hh,2,10,QChar('0')).arg(mm,2,10,QChar('0')).arg(ss,2,10,QChar('0'));
 }
 
 #endif

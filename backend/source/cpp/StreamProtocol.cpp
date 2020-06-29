@@ -38,6 +38,9 @@ void StreamProtocol::dispatchMessage(const Message &m)  {
             }
             break;
         case ID::FileSize :
+            stream >> value;
+            mpvSocketStreamer_->sizeReply(value);
+            break;
         case ID::FileClose:
             qDebug() << "NOT YET IMPLEMENTED" << IDNames_.value(id) ;
             break;

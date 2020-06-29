@@ -87,13 +87,14 @@ void MainWindow::updateWidgetStatus() {
     QColor c{ static_cast<QRgb>(connectionState_) };
     ui->ledLabel->setStyleSheet(QString("color:%1").arg(c.name()));
     ui->playButton->setText(mediaState_ == MediaState::Playing ? "":"");
-    ui->timeSlider->setEnabled(online);
-    ui->timeLabel->setEnabled(online);
-    ui->timePosLabel->setEnabled(online);
-    ui->volumeSlider->setEnabled(online);
-    ui->muteButton->setEnabled(online);
+    ui->stopButton->setEnabled(online && mediaState_ != MediaState::None);
+    ui->muteButton->setEnabled(online && mediaState_ != MediaState::None);
     ui->prefsButton->setEnabled(online);
     ui->enlargeButton->setEnabled(online); // #TODO diseable/enable container panel
+    ui->timeSlider->setEnabled(online && mediaState_ != MediaState::None);
+    ui->timeLabel->setEnabled(online && mediaState_ != MediaState::None);
+    ui->timePosLabel->setEnabled(online && mediaState_ != MediaState::None);
+    ui->volumeSlider->setEnabled(online && mediaState_ != MediaState::None);
 }
 
 
@@ -220,6 +221,9 @@ void MainWindow::onEventStateChanged(quint64 state) {
             break;
         case ControlProtocol::EventState::EndFile:
             mediaState_ = MediaState::None;
+            ui->timeSlider->setValue(0);
+            ui->timeLabel->setText(Utils::formatTime(0));
+            ui->timePosLabel->setText(Utils::formatTime(0));
             break;
     }
     updateWidgetStatus();
@@ -243,12 +247,10 @@ void MainWindow::on_action_Quit_triggered() {
     close();
 }
 
-
 void MainWindow::on_stopButton_clicked() {
     controlProtocol_->mediaStop();
 }
 
 void MainWindow::on_timeSlider_sliderReleased() {
     controlProtocol_->mediaSeek(ui->timeSlider->value());
-
 }

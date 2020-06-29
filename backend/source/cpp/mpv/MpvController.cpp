@@ -138,7 +138,11 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
             if(QString(prop->name) == "playback-time")  {// playback-time does the same thing as time-pos but works for streaming media
                 if(prop->format == MPV_FORMAT_DOUBLE) {
                     int64_t curr =(int64_t) *(double*)prop->data;
-                    if (curr != playbackTime_)      emit eventPlaybackTime(playbackTime_ = curr);
+                    // 1/3 of second is enough for timeing notification
+                    if (!previousTimerEvent_.isValid() || previousTimerEvent_.hasExpired(300) ) {
+                        previousTimerEvent_.restart();
+                        emit eventPlaybackTime(curr);
+                    }
                 }
             }
 
@@ -167,10 +171,9 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
         case MPV_EVENT_VIDEO_RECONFIG: {
             // Retrieve the new video size.
             int64_t w, h;
-            if (mpv_get_property(mpvHandle_, "dwidth", MPV_FORMAT_INT64, &w) >= 0 &&
-                    mpv_get_property(mpvHandle_, "dheight", MPV_FORMAT_INT64, &h) >= 0 &&
-                    w > 0 && h > 0)
-            {
+            if (mpv_get_property(mpvHandle_, "dwidth", MPV_FORMAT_INT64, &w) >= 0
+            && mpv_get_property(mpvHandle_, "dheight", MPV_FORMAT_INT64, &h) >= 0
+            && w > 0 && h > 0) {
                 // Note that the MPV_EVENT_VIDEO_RECONFIG event doesn't necessarily
                 // imply a resize, and you should check yourself if the video
                 // dimensions really changed.

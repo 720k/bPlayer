@@ -48,8 +48,10 @@ void StreamProtocolFileRead::dispatchMessage(const Message &m) {
             emit sendMessage( Message::make(ID::FileRead, result, buf) );
             }
             break;
-        case ID::FileSize :
-            //print("NOT YET IMPLEMENTED",IDNames_.value(id));
+        case ID::FileSize : {
+            value = file_.size();
+            emit sendMessage( Message::make(ID::FileSize, value));
+            }
             break;
         case ID::FileClose:
             if (file_.isOpen()) file_.close();

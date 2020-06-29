@@ -55,6 +55,31 @@ color: rgb(238, 238, 236);</string>
     </item>
     <item>
      <widget class="QSlider" name="timeSlider">
+      <property name="styleSheet">
+       <string notr="true">QSlider::groove:horizontal {
+    border: 1px solid #999999;
+	height: 18px;
+	border-radius: 9px;
+}
+
+QSlider::handle:horizontal {
+    background: white;
+    border: 1px solid #5c5c5c;
+	width: 16px;
+     border-radius: 8px;
+}
+
+QSlider::add-page:horizontal {
+    background: gray;
+}
+
+QSlider::sub-page:horizontal {
+    background: red;
+}</string>
+      </property>
+      <property name="value">
+       <number>6</number>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
