@@ -6,8 +6,9 @@
 #include <QJsonDocument>
 #include <mpv/qthelper.hpp>
 
-QMap<int,int> MpvController::eventConversionTable_ = {
-};
+Q_LOGGING_CATEGORY(catMpv, "MpvCtrl")
+
+
 
 MpvController::MpvController(QObject *parent) : QObject(parent)   {
     // Qt sets the locale in the QApplication constructor, but libmpv requires
@@ -49,6 +50,7 @@ MpvController::MpvController(QObject *parent) : QObject(parent)   {
 
 //    // Let us receive property change events with MPV_EVENT_PROPERTY_CHANGE if
 //    // this property changes.
+    mpv_observe_property(mpvHandle_, 0, "playback-time", MPV_FORMAT_DOUBLE);
 //    mpv_observe_property(mpvHandle_, 0, "time-pos", MPV_FORMAT_DOUBLE);
 //    mpv_observe_property(mpvHandle_, 0, "duration", MPV_FORMAT_DOUBLE);
 
@@ -82,30 +84,36 @@ void MpvController::mpvEventReady_cb(void *ctx)     {
 
 
 // METHODS
-void MpvController::loadFile(const QString &fileName, const QString& protocol)  {
-    uri_ = (protocol.isEmpty() ? fileName : QString("%1://%2").arg(protocol).arg(fileName)).toLocal8Bit();
-    qDebug() << "URI: " << uri_;
-    const char *args[] = {"loadfile", uri_.constData(), nullptr};
-    mpv_command_async(mpvHandle_, 0, args);
-}
-
 void MpvController::registerHandler(const QString& name, void *instance, mpv_stream_cb_open_ro_fn open_fn) {
     mpv_stream_cb_add_ro(mpvHandle_, name.toLocal8Bit(), instance,  open_fn);
 }
 
+void MpvController::loadFile(const QString &fileName, const QString& protocol)  {
+    uri_ = (protocol.isEmpty() ? fileName : QString("%1://%2").arg(protocol).arg(fileName)).toLocal8Bit();
+    qCDebug(catMpv) << "URI: " << uri_;
+    const char *args[] = {"loadfile", uri_.constData(), nullptr};
+    mpv_command_async(mpvHandle_, 0, args);
+}
+
 void MpvController::mediaStart() {
     const char *args[] = {"loadfile", "bee://media", nullptr};
-    mpv_command_async(mpvHandle_, 0, args);
+    mpv_command_async(mpvHandle_, ReplyID::Start, args);
 }
 
 void MpvController::mediaStop() {
     const char *args[] = {"stop", nullptr};
-    mpv_command_async(mpvHandle_, 0, args);
+    mpv_command_async(mpvHandle_, ReplyID::Stop, args);
 }
 
 void MpvController::mediaPause(bool isPaused) {
     isPaused_ = isPaused ? 1 : 0;
-    mpv_set_property_async(mpvHandle_,0,"pause",MPV_FORMAT_FLAG, &isPaused_);
+    mpv_set_property_async(mpvHandle_,ReplyID::Pause, "pause",MPV_FORMAT_FLAG, &isPaused_);
+}
+
+void MpvController::mediaSeek(int position) {
+    const QByteArray pos = QString::number(position).toUtf8();
+    const char *args[] = {"seek", pos.constData(), "absolute", NULL};
+    mpv_command_async(mpvHandle_, ReplyID::Seek, args);
 }
 
 void MpvController::quit() {
@@ -127,6 +135,13 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
     switch (event->event_id) {
         case MPV_EVENT_PROPERTY_CHANGE: {
             mpv_event_property *prop = (mpv_event_property *)event->data;
+            if(QString(prop->name) == "playback-time")  {// playback-time does the same thing as time-pos but works for streaming media
+                if(prop->format == MPV_FORMAT_DOUBLE) {
+                    int64_t curr =(int64_t) *(double*)prop->data;
+                    if (curr != playbackTime_)      emit eventPlaybackTime(playbackTime_ = curr);
+                }
+            }
+
             if (strcmp(prop->name, "time-pos") == 0) {
                 if (prop->format == MPV_FORMAT_DOUBLE) {
                     double time = *(double *)prop->data;
@@ -169,7 +184,7 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
         }
         case MPV_EVENT_LOG_MESSAGE: {
             struct mpv_event_log_message *msg = static_cast<struct mpv_event_log_message *>(event->data);
-            qDebug().noquote() << cYLW << "[MPV] " << msg->prefix << " > " << msg->level << ": " << QString(msg->text).trimmed() << cEOL;
+            qCDebug(catMpv).noquote() << cYLW << msg->prefix << " > " << msg->level << ": " << QString(msg->text).trimmed() << cEOL;
             break;
         }
         case MPV_EVENT_SHUTDOWN: {
@@ -181,7 +196,16 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
         case MPV_EVENT_PAUSE:   emit eventStateChanged(ControlProtocol::EventState::Pause);  break;
         case MPV_EVENT_UNPAUSE: emit eventStateChanged(ControlProtocol::EventState::Unpause);    break;
         case MPV_EVENT_PLAYBACK_RESTART: emit eventStateChanged(ControlProtocol::EventState::PlaybackRestart); break;
+        case MPV_EVENT_START_FILE: emit eventStateChanged(ControlProtocol::EventState::StartFile); break;
+        case MPV_EVENT_END_FILE: emit eventStateChanged(ControlProtocol::EventState::EndFile); break;
+        case MPV_EVENT_IDLE: emit eventStateChanged(ControlProtocol::EventState::Idle); break;
 
+        case MPV_EVENT_FILE_LOADED: {
+            double len;
+            mpv_get_property(mpvHandle_, "duration", MPV_FORMAT_DOUBLE, &len);
+            emit eventMediaLength((int)len);
+            break;
+        }
         default: ; // Ignore uninteresting or unknown events.
     }
 }

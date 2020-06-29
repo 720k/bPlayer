@@ -8,6 +8,8 @@
 #include "ControlProtocol.h"
 #include "StreamProtocolFileRead.h"
 #include "Utils.h"
+#include "TestWindow.h"
+#include "BPlayer.h"
 
 #include <QLocalServer>
 #include <QFileDialog>
@@ -15,37 +17,36 @@
 #include <QFontDatabase>
 #include <QTimer>
 #include <chrono>
+#include <QTime>
 Q_LOGGING_CATEGORY(catApp, "App")
 
 using namespace std::literals::chrono_literals;
 
-QMap<MainWindow::ConnectionState, QString>  MainWindow::stateName_ = {
+QMap<MainWindow::ConnectionState, QString>  MainWindow::connectionStateName_ = {
     {ConnectionState::Offline,       "Offline"},
     {ConnectionState::Connecting,    "Connecting"},
-    {ConnectionState::ConnectingWait,"ConnectingWait"},
+//    {ConnectionState::ConnectingWait,"ConnectingWait"},
     {ConnectionState::Online,        "Online"},
     {ConnectionState::Ready,         "Ready"},
 };
 
 
 void MainWindow::init() {
-    connect(ui->sendButton, &QPushButton::clicked, this, &MainWindow::on_inputEdit_returnPressed);
-
     connectionTypeChanged();
-    connect(ui->tcpipSocketRadioButton, &QRadioButton::clicked,     this, &MainWindow::connectionTypeChanged );
-    connect(ui->localSocketRadioButton, &QRadioButton::clicked,     this, &MainWindow::connectionTypeChanged );
-    // populate BProtocol
-    testProtocol_ = new TestProtocol(&protocolList_);
-    controlProtocol_ = new ControlProtocol(&protocolList_);
-    streamProtocol_ = new StreamProtocolFileRead(&protocolList_);
-    protocolList_.insert(testProtocol_);
-    protocolList_.insert(controlProtocol_);
-    protocolList_.insert(streamProtocol_);
-    protocolList_.printDispatchTable();
+    // DATA conduit
+    dataProtocols_.insert(testProtocol_ =    new TestProtocol(&dataProtocols_));
+    dataProtocols_.insert(controlProtocol_ = new ControlProtocol(&dataProtocols_));
+    dataProtocols_.printDispatchTable();
 
-    connect(testProtocol_,      &TestProtocol::pingReady,       this, &MainWindow::pingReady);
+    // STREAM conduit
+    streamProtocols_.insert(streamProtocol_ =  new StreamProtocolFileRead(&streamProtocols_));
+    streamProtocols_.printDispatchTable();
+
+
     connect(controlProtocol_,   &ControlProtocol::onTok,        this,&MainWindow::onTok);
     connect(controlProtocol_,   &ControlProtocol::onEventStateChanged, this, &MainWindow::onEventStateChanged);
+    connect(controlProtocol_,   &ControlProtocol::onMediaLength,    this, &MainWindow::onMediaLength);
+    connect(controlProtocol_,   &ControlProtocol::onPlaybackTime,    this, &MainWindow::onPlaybackTime);
 
     int id = QFontDatabase::addApplicationFont(":/font/font-roboto-nerd");
     if (id < 0) {
@@ -55,74 +56,58 @@ void MainWindow::init() {
         QFont nerd(family);
         qApp->setFont(nerd);
     }
+    testWindow_ = new TestWindow(this);
 }
 
 bool MainWindow::isLocalSocket() const {
-    return ui->localSocketRadioButton->isChecked();
-}
-
-bool MainWindow::isOnline() const {
-    return connectionState_ == ConnectionState::Ready;
+#ifdef Q_OS_LINUX
+    return true;
+#else
+    return false;
+#endif
 }
 
 
 MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
-    ui->portEdit->setText("/tmp/frontend");
     updateWidgetStatus();
     init();
-    QTimer::singleShot(3s,this,&MainWindow::startConnecting);
+
+    QTimer::singleShot(2s,this,&MainWindow::tryConnecting);
 }
 
 MainWindow::~MainWindow() {
-    delete streamProtocol_;
-    delete controlProtocol_;
-    delete testProtocol_;
     delete ui;
 }
 
 
 void MainWindow::updateWidgetStatus() {
     bool online = isOnline();
-    ui->tcpipSocketRadioButton->setEnabled(!online);
-    ui->localSocketRadioButton->setEnabled(!online);
-    ui->portEdit->setEnabled(!online);
-    ui->portLabel->setEnabled(ui->portEdit->isEnabled());
-    ui->connectButton->setText(online ? "Disconnect" : "Connect");
-    ui->interfaceBox->setEnabled(online);
     // MAIN TAB
     QColor c{ static_cast<QRgb>(connectionState_) };
     ui->ledLabel->setStyleSheet(QString("color:%1").arg(c.name()));
-
     ui->playButton->setText(mediaState_ == MediaState::Playing ? "":"");
+    ui->timeSlider->setEnabled(online);
+    ui->timeLabel->setEnabled(online);
+    ui->timePosLabel->setEnabled(online);
+    ui->volumeSlider->setEnabled(online);
+    ui->muteButton->setEnabled(online);
+    ui->prefsButton->setEnabled(online);
+    ui->enlargeButton->setEnabled(online); // #TODO diseable/enable container panel
 }
 
 
-void MainWindow::on_inputEdit_returnPressed() {
-    testProtocol_->sendString(ui->inputEdit->text());
-    ui->inputEdit->clear();
-}
-
-void MainWindow::on_pingButton_clicked() {
-    testProtocol_->ping(ui->bounceSpinBox->value());
-}
-
-
-void MainWindow::pingReady(double microsecs) {
-    ui->logEdit->appendPlainText(QString("Ping came back in %1 milliSecs (average)").arg(Utils::printableNumber(microsecs)));
-}
-
-void MainWindow::startConnecting() {
-    connectionState_ = ConnectionState::Connecting;
-    if (isLocalSocket())    socket_->connectToServer(ui->portEdit->text());
-    else                    socket_->connectToServer("localhost", ui->portEdit->text().toUInt());
-}
-
-void MainWindow::retry() {
-    if (connectionState_ == ConnectionState::ConnectingWait) {
-        startConnecting();
+void MainWindow::tryConnecting() {
+    if (dataSocket_->isConnected() && streamSocket_->isConnected()) return;
+    setConnectionState(ConnectionState::Connecting);
+    if (isLocalSocket())    {
+        QString processName = "socket-bridge";
+        if (dataSocket_->isUnconnected())   dataSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::dataPortName), processName) );
+        if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::streamPortName), processName) );
+    } else {
+        if (dataSocket_->isUnconnected())   dataSocket_->connectToServer(BPlayer::locolhost, BPlayer::dataPortNumber);
+        if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::locolhost, BPlayer::streamPortNumber);
     }
-    updateWidgetStatus();
 }
 
 void MainWindow::startTicking() {
@@ -136,31 +121,38 @@ void MainWindow::stopTicking() {
     }
 }
 
+
 void MainWindow::timerEvent(QTimerEvent *event) {   Q_UNUSED(event)
     controlProtocol_->tik();
 }
 
-
-
-void MainWindow::on_connectButton_clicked() {
-    if (isOnline()) closeConnection();
-    else            startConnecting();
-    updateWidgetStatus();
-}
-
 void MainWindow::connectionTypeChanged() {
-    // assert: state is offline
-    if (socket_) {
-        socket_->disconnect(); // no strings attached
-        socket_->deleteLater();
+    if (dataSocket_) {
+        dataSocket_->disconnect(); // no strings attached
+        dataSocket_->deleteLater();
     }
-    if (isLocalSocket())    socket_ = new LocalSocket();
-    else                    socket_ = new TcpSocket();
+    if (streamSocket_) {
+        streamSocket_->disconnect(); // no strings attached
+        streamSocket_->deleteLater();
+    }
 
-    // Client socket <-> BProtocol
-    connect(socket_,&AbstractSocket::messageReady,    &protocolList_, &ProtocolList::decodeMessage);
-    connect(socket_,&AbstractSocket::stateChanged,    this, &MainWindow::socketStateChanged);
-    connect(&protocolList_,&ProtocolList::messageReady,     socket_, &AbstractSocket::writeMessage);
+    if (isLocalSocket())    {
+        dataSocket_ = new LocalSocket();
+        streamSocket_ = new LocalSocket();
+    } else {
+        dataSocket_ = new TcpSocket();
+        streamSocket_ = new TcpSocket();
+    }
+
+    // data socket <-> data Protocols
+    connect(dataSocket_,&AbstractSocket::stateChanged,    this, &MainWindow::socketStateChanged);
+    connect(dataSocket_,&AbstractSocket::messageReady,    &dataProtocols_, &ProtocolList::decodeMessage);
+    connect(&dataProtocols_,&ProtocolList::messageReady,     dataSocket_, &AbstractSocket::writeMessage);
+
+    // stream socket <-> stream Protocols
+    connect(streamSocket_,&AbstractSocket::stateChanged,    this, &MainWindow::socketStateChanged);
+    connect(streamSocket_,&AbstractSocket::messageReady,    &streamProtocols_, &ProtocolList::decodeMessage);
+    connect(&streamProtocols_,&ProtocolList::messageReady,     streamSocket_, &AbstractSocket::writeMessage);
 }
 
 void MainWindow::on_action_Open_triggered() {
@@ -172,24 +164,30 @@ void MainWindow::on_action_Open_triggered() {
     controlProtocol_->mediaStart();
 }
 
+void MainWindow::checkState() {
+    if (connectionState_ == ConnectionState::Connecting) {
+        if (dataSocket_->isConnected() && streamSocket_->isConnected()) setConnectionState(ConnectionState::Online);
+        else                                                            QTimer::singleShot(3s, this, &MainWindow::tryConnecting);
+    }
+    if (connectionState_ == ConnectionState::Online) {
+        if (dataSocket_->isUnconnected() || streamSocket_->isUnconnected()) {
+            setConnectionState(ConnectionState::Connecting);
+            QTimer::singleShot(3s, this, &MainWindow::tryConnecting);
+        } else {
+            startTicking();
+        }
+    }
+}
+
+void MainWindow::setConnectionState(MainWindow::ConnectionState state) {
+    if (state != connectionState_)  {
+        qCDebug(catApp).noquote() << " State > " << connectionStateName_.value(connectionState_ = state);
+        updateWidgetStatus();
+    }
+}
 
 void MainWindow::socketStateChanged(AbstractSocket::SocketState state) {
-    if (state == AbstractSocket::SocketState::UnconnectedState) {
-        stopTicking();
-        if (connectionState_ == ConnectionState::Connecting)  {
-            connectionState_ = ConnectionState::ConnectingWait;
-            QTimer::singleShot(3s, this,  &MainWindow::retry);
-        }
-        if (connectionState_ == ConnectionState::Online || connectionState_ == ConnectionState::Ready)  {
-            startConnecting();
-        }
-    }
-    if (state == AbstractSocket::SocketState::ConnectedState) {
-        connectionState_ = ConnectionState::Online;
-        startTicking();
-    }
-    qCDebug(catApp).noquote() << " state > " << stateName_.value(connectionState_);
-    updateWidgetStatus();
+    if (state == AbstractSocket::SocketState::ConnectedState || state == AbstractSocket::SocketState::UnconnectedState)  checkState();
 }
 
 
@@ -200,14 +198,13 @@ void MainWindow::on_playButton_clicked() {
 }
 
 void MainWindow::closeConnection() {
-    socket_->disconnectFromServer();
+    dataSocket_->disconnectFromServer();
     connectionState_ = ConnectionState::Offline;
 }
 
 void MainWindow::onTok() {
     if (connectionState_ != ConnectionState::Ready) {
-        connectionState_ = ConnectionState::Ready;
-        updateWidgetStatus();
+        setConnectionState(ConnectionState::Ready);
         stopTicking();
     }
 }
@@ -226,4 +223,32 @@ void MainWindow::onEventStateChanged(quint64 state) {
             break;
     }
     updateWidgetStatus();
+}
+
+void MainWindow::onMediaLength(quint64 length) {
+    ui->timeLabel->setText( Utils::formatTime(length) );
+    ui->timeSlider->setMaximum(length);
+}
+
+void MainWindow::onPlaybackTime(quint64 time) {
+    ui->timePosLabel->setText( Utils::formatTime(time));
+    if (!ui->timeSlider->isSliderDown()) ui->timeSlider->setValue(time);
+}
+
+void MainWindow::on_actionTest_Window_triggered() {
+    testWindow_->show();
+}
+
+void MainWindow::on_action_Quit_triggered() {
+    close();
+}
+
+
+void MainWindow::on_stopButton_clicked() {
+    controlProtocol_->mediaStop();
+}
+
+void MainWindow::on_timeSlider_sliderReleased() {
+    controlProtocol_->mediaSeek(ui->timeSlider->value());
+
 }

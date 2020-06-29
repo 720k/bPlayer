@@ -9,6 +9,7 @@ class QLocalServer;
 class StreamProtocolFileRead;
 class TestProtocol;
 class ControlProtocol;
+class TestWindow;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,10 +24,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_inputEdit_returnPressed();
-    void on_pingButton_clicked();
-    void pingReady(double microsecs);
-    void on_connectButton_clicked();
     void connectionTypeChanged();
     void on_action_Open_triggered();
     void socketStateChanged(AbstractSocket::SocketState state);
@@ -35,14 +32,20 @@ private slots:
     void closeConnection();
     void onTok();
     void onEventStateChanged(quint64 state);
+    void onMediaLength(quint64 length);
+    void onPlaybackTime(quint64 time);
+    void on_actionTest_Window_triggered();
+    void on_action_Quit_triggered();
+    void on_stopButton_clicked();
+    void on_timeSlider_sliderReleased();
 
 private:
     Ui::MainWindow *ui;
-    enum class ConnectionState : int { Offline=0xd40000,
-                                      Connecting=0xe67e22,
-                                      ConnectingWait,
-                                      Online=0xfff70a,
-                                      Ready=0x00d600,
+    enum class ConnectionState : int { Offline=     0xc90000, // state = 0xRRGGBB color
+                                      Connecting=   0xfcba03,
+//                                      ConnectingWait,
+                                      Online=       0x00c8ff,
+                                      Ready=        0x07fa0b,
                                     };
     enum class MediaState : int    { None,
                                       Loading,
@@ -50,26 +53,34 @@ private:
                                       Paused,
                                       Playing,
                                       Seeking};
-    AbstractSocket                  *socket_ = nullptr;
-    ProtocolList                    protocolList_;
-    TestProtocol                    *testProtocol_;
-    ControlProtocol                 *controlProtocol_;
-    StreamProtocolFileRead          *streamProtocol_;
-    ConnectionState                 connectionState_    = ConnectionState::Offline;
-    MediaState                      mediaState_         = MediaState::None;
-    static QMap<ConnectionState, QString>   stateName_;
-    static constexpr int            invalidTimerID = -1;
-    int                             tickingTimerID_ = invalidTimerID;
+    AbstractSocket                  *dataSocket_ =          nullptr;
+    ProtocolList                    dataProtocols_;
+    TestProtocol                    *testProtocol_ =        nullptr;
+    ControlProtocol                 *controlProtocol_ =     nullptr;
+
+    AbstractSocket                  *streamSocket_ =        nullptr;
+    ProtocolList                    streamProtocols_;
+    StreamProtocolFileRead          *streamProtocol_ =      nullptr;
+
+    MediaState                      mediaState_         =   MediaState::None;
+    ConnectionState                 connectionState_    =   ConnectionState::Offline;
+    static QMap<ConnectionState, QString>   connectionStateName_;
+    static constexpr int            invalidTimerID =        -1;
+    int                             tickingTimerID_ =       invalidTimerID;
     QString                         fileName_;
+    TestWindow                      *testWindow_ =          nullptr;
+    friend class                    TestWindow;
 
     void                            updateWidgetStatus();
     void                            init();
     bool                            isLocalSocket() const;
-    bool                            isOnline() const;
-    void                            startConnecting();
-    void                            retry() ;
+    bool                            isOnline() const { return connectionState_ == ConnectionState::Ready; }
+    void                            tryConnecting();
+//    void                            retry() ;
     void                            startTicking();
     void                            stopTicking();
+    void                            checkState();
+    void                            setConnectionState(ConnectionState state);
     void                            timerEvent(QTimerEvent *event) override;
 
 };

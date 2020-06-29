@@ -38,10 +38,6 @@ void AbstractSocket::disconnectFromServer() {
     disconnectFrom();
 }
 
-QString AbstractSocket::testPort() {
-    static QString port {"/tmp/bplayer"};
-    return port;
-}
 
 void AbstractSocket::writeMessage(const QByteArray &message) {
     if (!socket_->isOpen()) {
@@ -83,7 +79,7 @@ void AbstractSocket::disconnected() {
 }
 
 void AbstractSocket::internalStateChanged(AbstractSocket::SocketState socketState) {
-    qCDebug(catSocket).noquote() << stateString(socketState);
+    qCDebug(catSocket).noquote() << serverName() << " --> " << stateString(socketState);
 #ifdef Q_OS_WIN
     extern void GetLastErrorStdStr();
     if (socketState == AbstractSocket::SocketState::ClosingState) {

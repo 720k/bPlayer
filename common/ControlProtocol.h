@@ -13,6 +13,9 @@ public:
                                     Tik,Tok,
                                     EventStateChange,
                                     EventTimePos,
+                                    MediaLength,
+                                    PlaybackTime,
+                                    MediaSeek,
                                     Last};
 
     enum                        EventState {
@@ -25,20 +28,25 @@ public slots:
     void                        mediaStart();
     void                        mediaStop();
     void                        mediaPause(bool isPaused);
+    void                        mediaSeek(quint64 position);
     void                        tik();
     // backend -> bPlayer
     void                        eventStateChanged(quint64 state);
     void                        eventTimePos(quint64 positionInSeconds);
+    void                        mediaLength(quint64 length);
+    void                        playbackTime(quint64 time);
 
 signals:
     void                        onMediaStart();
     void                        onMediaStop();
     void                        onMediaPause(bool isPaused);
     void                        onTok();
+    void                        onMediaSeek(quint64 position);
 
     void                        onEventStateChanged(quint64 state);
     void                        onEventTimePos(quint64 seconds);
-
+    void                        onMediaLength(quint64 length);
+    void                        onPlaybackTime(quint64 time);
 
 private:
     void                        dispatchMessage(const Message& msg) override;

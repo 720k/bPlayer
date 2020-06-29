@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    TempLocalSocketBridge \
+    tools/socket-bridge \
     frontend \
     backend \
 
@@ -13,3 +13,6 @@ DISTFILES += \
     text/mpv--list-options.txt \
     text/mpv--list-properties.txt \
     text/mpv--list-protocols.txt
+
+HEADERS += \
+    common/BPlayer.h

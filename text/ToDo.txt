@@ -1,14 +1,14 @@
 
 
 TO-DO:
-- MPV controller : logic start/stop/pause
-- MPV controller : add stream seeking visual feedback
-- MPV realtime info (position, state) forwarded to frontend (necessary for audio)
 - Common/ should be a library!
-- Reimplement StreamProtocol::Size with local cachinh because MPV call it so many times
+- Reimplement StreamProtocol::Size with local cachin because MPV call it so many times
 - convert project to CMAKE
 
 WORK-IN-PROGRESS:
-- logging system to stdout even on release build with classes none/info/debug/trace
+- MPV controller : logic start/stop/pause
+- MPV realtime info (position, state) forwarded to frontend (necessary for audio)
+- MPV controller : add stream seeking visual feedback
 
 DONE:
+- logging system to stdout even on release build with classes none/info/debug/trace

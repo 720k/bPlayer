@@ -12,6 +12,9 @@ QMap<int, QString> ControlProtocol::IDNames_ {
     {ID::Tok,               "Tok"},
     {ID::EventStateChange,  "EventStateChange"},
     {ID::EventTimePos,      "EventTimePos"},
+    {ID::MediaLength,       "MediaLength"},
+    {ID::PlaybackTime,      "PlaybackTime"},
+    {ID::MediaSeek,         "MediaSeek"},
     {ID::Last,              "Last"},
 };
 
@@ -33,6 +36,10 @@ void ControlProtocol::mediaPause(bool isPaused) {
     emit sendMessage(Message::make(ID::MediaPause, isPaused ));
 }
 
+void ControlProtocol::mediaSeek(quint64 position) {
+    emit sendMessage(Message::make(ID::MediaSeek, position));
+}
+
 void ControlProtocol::tik() {
     emit sendMessage(Message::make(ID::Tik));
 }
@@ -43,6 +50,14 @@ void ControlProtocol::eventStateChanged(quint64 state) {
 
 void ControlProtocol::eventTimePos(quint64 positionInSeconds) {
     emit sendMessage(Message::make(ID::EventTimePos, positionInSeconds));
+}
+
+void ControlProtocol::mediaLength(quint64 length) {
+    emit sendMessage(Message::make(ID::MediaLength, length));
+}
+
+void ControlProtocol::playbackTime(quint64 time) {
+    emit sendMessage(Message::make(ID::PlaybackTime, time));
 }
 
 
@@ -82,6 +97,24 @@ void ControlProtocol::dispatchMessage(const Message &msg) {
             emit onEventTimePos(posInSecods);
             break;
             }
+        case ID::MediaLength: {
+            quint64 length;
+            stream >> length;
+            emit onMediaLength(length);
+            break;
+            }
+        case ID::PlaybackTime: {
+            quint64 time;
+            stream >> time;
+            emit onPlaybackTime(time);
+            break;
+        }
+        case ID::MediaSeek: {
+            quint64 position;
+            stream >> position;
+            emit onMediaSeek(position);
+            break;
+        }
         default:
             break;
     }

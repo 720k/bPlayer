@@ -20,9 +20,10 @@ public:
     void                connectToServer(const QString &name, const int port=0) ;
     void                disconnectFromServer();
     SocketState         state() const { return state_;}
-    static QString      testPort();
     void                setSocket(QIODevice *socket);
     QString             serverName() const;
+    bool                isConnected() const { return state_ == SocketState::ConnectedState; }
+    bool                isUnconnected() const { return state_ == SocketState::UnconnectedState; }
 
 public slots:
     void                writeMessage(const QByteArray& message);

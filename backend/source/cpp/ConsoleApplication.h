@@ -6,6 +6,8 @@
 
 #include <QCoreApplication>
 #include <QLoggingCategory>
+#include <QBitArray>
+
 Q_DECLARE_LOGGING_CATEGORY(catApp)
 
 class TestProtocol;
@@ -21,37 +23,41 @@ public:
                             ConsoleApplication(int& argc, char** argv);
                             ~ConsoleApplication() override;
     int                     run();
-    int                     start();
     bool                    isSingleInstance() const { return singleInstance_; }
     bool                    isFirstInstance();
-    void                    setPortName(const QString& portname);
-    QString                 portName() const { return portName_;}
+    void                    setStreamPortPath(const QString& streamPortPath) { streamPortPath_ = streamPortPath; }
+    QString                 streamPortPath() const { return streamPortPath_; }
+    void                    setDataPortPath(const QString& dataPortPath) { dataPortPath_ = dataPortPath; }
+    QString                 dataPortPath() const { return dataPortPath_; }
+    void                    searchConduitPath();
 
 private slots:
     void                    socketStateChanged(AbstractSocket::SocketState state);
+    void                    tryConnecting();
 //    void                    error(QLocalSocket::LocalSocketError socketError);
-    void                    retry();
 private:
-    enum class ConnectionState :int  { Offline=0xd40000,
-                                      Connecting=0xe67e22,
-                                      ConnectingWait,
-                                      Online=0xfff70a};
-    void                    init();
-    void                    closing();
-    QString                 portNameFromProcess(const QString &processName);
-    QString                 portNameFromExistingSocket(const QString &socketName);
-    void                    startConnecting();
 
-    bool                            singleInstance_;
-    QString                         portName_;
-    LocalSocket                     socket_;
-    ProtocolList                    protocolList_;
-    TestProtocol                    *testProtocol_;
-    ControlProtocol                 *controlProtocol_;
-    StreamProtocol                  *streamProtocol_;
+    enum class ConnectionState :int  { Offline=0xd40000, Connecting=0xe67e22, Online=0xfff70a};
+    void                            init();
+    void                            closing();
+    void                            checkState();
+    void                            setConnectionState(ConnectionState state);
+
+    bool                            singleInstance_=    false;
+
+    QString                         dataPortPath_=      "";
+    LocalSocket                     dataSocket_;
+    ProtocolList                    dataProtocols_;
+    TestProtocol                    *testProtocol_=     nullptr;
+    ControlProtocol                 *controlProtocol_=  nullptr;
+    ConnectionState                 connectionState_=   ConnectionState::Offline;
+
+    QString                         streamPortPath_=    "";
+    LocalSocket                     streamSocket_;
+    ProtocolList                    streamProtocols_;
+    StreamProtocol                  *streamProtocol_=   nullptr;
     MpvController*                  mpvController_;
     MpvSynchronousSocketStream*     mpvSynchronousSocketStream_;
-    ConnectionState                 connectionState_;
     static QMap<ConnectionState,QString>        connectionStateName_;
 };
 

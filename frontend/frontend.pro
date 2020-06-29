@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     source/cpp/DropLabel.cpp \
+    source/cpp/TestWindow.cpp \
     source/cpp/__main.cpp \
     source/cpp/MainWindow.cpp \
     source/cpp/StreamProtocolFileRead.cpp \
@@ -39,6 +40,7 @@ SOURCES += \
     ../common/Utils.cpp
 
 HEADERS += \
+    ../common/BPlayer.h \
     source/cpp/DropLabel.h \
     source/cpp/MainWindow.h \
     source/cpp/StreamProtocolFileRead.h \
@@ -51,10 +53,12 @@ HEADERS += \
     ../common/ProtocolBase.h \
     ../common/TcpSocket.h \
     ../common/TestProtocol.h \
-    ../common/Utils.h
+    ../common/Utils.h \
+    source/cpp/TestWindow.h
 
 FORMS += \
-    source/cpp/MainWindow.ui
+    source/cpp/MainWindow.ui \
+    source/cpp/TestWindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

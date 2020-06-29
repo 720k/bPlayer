@@ -10,6 +10,8 @@ namespace Utils {
     QString         printableNumber(double no);
     QString         threadName(QString text);
     qint64          getProcessID(const QString& name);
+    QString         portNameFromProcess(const QString &portName, const QString &ProcessName);
+    QString         formatTime(quint64 seconds);
 
     template<class C>
     void            destroy(C& instance) {

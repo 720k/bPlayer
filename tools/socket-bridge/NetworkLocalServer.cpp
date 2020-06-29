@@ -34,6 +34,7 @@ void NetworkLocalServer::start(const QString &port) {
         QFile::remove(port);
     }
     listen(port);
+    qDebug() << serverName() << " is listening";
 }
 
 void NetworkLocalServer::newConnectionAvailable() {
