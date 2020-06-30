@@ -103,7 +103,7 @@ void MainWindow::tryConnecting() {
     setConnectionState(ConnectionState::Connecting);
     if (isLocalSocket())    {
         QString processName = "socket-bridge";
-        if (dataSocket_->isUnconnected())   dataSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::dataPortName), processName) );
+        if (dataSocket_->isUnconnected())   dataSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::controlPortName), processName) );
         if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::streamPortName), processName) );
     } else {
         if (dataSocket_->isUnconnected())   dataSocket_->connectToServer(BPlayer::locolhost, BPlayer::dataPortNumber);

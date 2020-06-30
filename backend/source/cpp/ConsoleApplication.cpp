@@ -45,12 +45,12 @@ ConsoleApplication::~ConsoleApplication()   {
 void ConsoleApplication::searchConduitPath() {
     QString processName = "socket-bridge";
     // first check bridge!
-    if (dataPortPath_.isEmpty())    dataPortPath_ = Utils::portNameFromProcess(BPlayer::dataPortName, processName);
+    if (dataPortPath_.isEmpty())    dataPortPath_ = Utils::portNameFromProcess(BPlayer::controlPortName, processName);
     if (streamPortPath_.isEmpty())  streamPortPath_ = Utils::portNameFromProcess(BPlayer::streamPortName, processName);
 
     // then check Remote-Viewer process
     processName = "remote-viewer";
-    if (dataPortPath_.isEmpty())    dataPortPath_ = Utils::portNameFromProcess(BPlayer::dataPortName, processName);
+    if (dataPortPath_.isEmpty())    dataPortPath_ = Utils::portNameFromProcess(BPlayer::controlPortName, processName);
     if (streamPortPath_.isEmpty())  streamPortPath_ = Utils::portNameFromProcess(BPlayer::streamPortName, processName);
 
     // check existance
