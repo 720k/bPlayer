@@ -1,4 +1,5 @@
 #include "NetworkLocalServer.h"
+#include "BPlayer.h"
 #include <QtCore/QCoreApplication>
 #include <iostream>
 #include <future>
@@ -16,8 +17,9 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    QString conduitData     ("io.bplayer.data.0");
-    QString conduitStream   ("io.bplayer.stream.0");
+    QString conduitControl     (BPlayer::controlPortName);
+    QString conduitStream   (BPlayer::streamPortName);
+
     QDir tempDir( QString("/tmp/%1-%2").arg(app.applicationName()).arg(app.applicationPid()) );
     QDir frontendPath = tempDir.absolutePath() + QDir::separator() + "frontend";
     QDir backendPath =  tempDir.absolutePath();
@@ -28,8 +30,8 @@ int main(int argc, char *argv[])
     // conduit DATA
     NetworkLocalServer  serverDataF,serverDataB;
     connectServer(serverDataF,  serverDataB);
-    serverDataF.start( frontendPath.absolutePath() + QDir::separator() + conduitData);
-    serverDataB.start( backendPath.absolutePath() + QDir::separator() + conduitData);
+    serverDataF.start( frontendPath.absolutePath() + QDir::separator() + conduitControl);
+    serverDataB.start( backendPath.absolutePath() + QDir::separator() + conduitControl);
 
     NetworkLocalServer  serverStreamF,serverStreamB;
     connectServer(serverStreamF,serverStreamB);
