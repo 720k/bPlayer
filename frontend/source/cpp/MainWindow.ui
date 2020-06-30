@@ -56,6 +56,9 @@ color: rgb(238, 238, 236);
     </item>
     <item>
      <widget class="QSlider" name="timeSlider">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="styleSheet">
        <string notr="true">QSlider::groove:horizontal {
     /*border: 1px solid #999999;*/
@@ -76,7 +79,19 @@ QSlider::add-page:horizontal {
 
 QSlider::sub-page:horizontal {
     background: #ff0000;
-}</string>
+}
+
+/* DISABLED*/
+QSlider::handle:disabled:horizontal {
+    background: #660000;
+   
+}
+
+QSlider::sub-page:disabled:horizontal {
+    background: #660000;
+}
+
+</string>
       </property>
       <property name="value">
        <number>6</number>
@@ -146,6 +161,9 @@ QSlider::sub-page:horizontal {
        </item>
        <item>
         <widget class="QToolButton" name="stopButton">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="maximumSize">
           <size>
            <width>48</width>
@@ -157,6 +175,11 @@ QSlider::sub-page:horizontal {
            <family>RobotoMono Nerd Font Mono</family>
            <pointsize>20</pointsize>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton:disabled {
+	color: #666666;
+}</string>
          </property>
          <property name="text">
           <string></string>
@@ -189,6 +212,9 @@ QSlider::sub-page:horizontal {
          </property>
          <item>
           <widget class="QLabel" name="timePosLabel">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="font">
             <font>
              <family>RobotoMono Nerd Font Mono</family>
@@ -196,6 +222,11 @@ QSlider::sub-page:horizontal {
              <weight>50</weight>
              <bold>false</bold>
             </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QLabel:disabled {
+ color: #666666
+}</string>
            </property>
            <property name="text">
             <string>00:00:00</string>
@@ -207,6 +238,9 @@ QSlider::sub-page:horizontal {
          </item>
          <item>
           <widget class="QLabel" name="timeLabel">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="font">
             <font>
              <family>RobotoMono Nerd Font Mono</family>
@@ -214,6 +248,11 @@ QSlider::sub-page:horizontal {
              <weight>50</weight>
              <bold>false</bold>
             </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QLabel:disabled {
+ color: #666666
+}</string>
            </property>
            <property name="text">
             <string>00:00:00</string>
@@ -252,6 +291,11 @@ QSlider::sub-page:horizontal {
            <pointsize>20</pointsize>
           </font>
          </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton:disabled {
+	color: #666666;
+}</string>
+         </property>
          <property name="text">
           <string>墳</string>
          </property>
@@ -262,6 +306,9 @@ QSlider::sub-page:horizontal {
        </item>
        <item>
         <widget class="QSlider" name="volumeSlider">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="maximumSize">
           <size>
            <width>80</width>
@@ -288,6 +335,14 @@ QSlider::add-page:horizontal {
 
 QSlider::sub-page:horizontal {
     background: #ffffff;
+}
+/* DSIABLED*/
+QSlider::handle:disabled:horizontal {
+    background: #666666;
+}
+
+QSlider::sub-page:disabled:horizontal {
+    background: #666666;
 }</string>
          </property>
          <property name="pageStep">
@@ -367,6 +422,11 @@ QSlider::sub-page:horizontal {
            <family>RobotoMono Nerd Font</family>
            <pointsize>20</pointsize>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton:disabled {
+	color: #666666;
+}</string>
          </property>
          <property name="text">
           <string></string>
