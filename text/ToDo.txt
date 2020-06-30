@@ -2,8 +2,8 @@
 
 TO-DO:
 - Common/ should be a library!
-- Reimplement StreamProtocol::Size with local cachin because MPV call it so many times
 - convert project to CMAKE
+- FrontEnd: StreamProtocol handled in separate thread (better efficiency)
 
 WORK-IN-PROGRESS:
 - MPV controller : logic start/stop/pause
@@ -11,4 +11,5 @@ WORK-IN-PROGRESS:
 - MPV controller : add stream seeking visual feedback
 
 DONE:
+- Reimplement StreamProtocol::Size with local cachin because MPV call it so many times
 - logging system to stdout even on release build with classes none/info/debug/trace

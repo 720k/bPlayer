@@ -24,7 +24,7 @@ void MpvSynchronousSocketStream::readReply(uint64_t result, QByteArray ba) {
 }
 
 void MpvSynchronousSocketStream::sizeReply(int64_t size) {
-    terminateSynchrizedWithValue(size);
+    terminateSynchrizedWithValue(cachedSize_ = size);
 }
 
 void MpvSynchronousSocketStream::closeReply() {
@@ -33,6 +33,8 @@ void MpvSynchronousSocketStream::closeReply() {
 void MpvSynchronousSocketStream::openSynchronized() {
     CON << cORG <<"[OPEN] "<< cRST;
     protocol_->openRequest();
+    // clear cache
+    cachedSize_=0;
 }
 
 void MpvSynchronousSocketStream::seekSynchronized(uint64_t offset) {
@@ -49,7 +51,8 @@ void MpvSynchronousSocketStream::readSynchronized(char *buf, quint64 nbytes) {
 
 void MpvSynchronousSocketStream::sizeSynchronized() {
     CON << cORG << "[SIZE] " << cRST;
-    protocol_->sizeRequest();
+    if (cachedSize_)    terminateSynchrizedWithValue(cachedSize_);
+    else                protocol_->sizeRequest();
 }
 
 void MpvSynchronousSocketStream::closeSynchronized() {

@@ -15,7 +15,8 @@
   </property>
   <property name="styleSheet">
    <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(238, 238, 236);</string>
+color: rgb(238, 238, 236);
+</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0">
@@ -97,8 +98,7 @@ QSlider::sub-page:horizontal {
     <item>
      <widget class="QWidget" name="toolBar" native="true">
       <property name="styleSheet">
-       <string notr="true">
-</string>
+       <string notr="true"/>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">

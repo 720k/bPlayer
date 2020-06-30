@@ -29,6 +29,8 @@ private:
 
     char*               mpvReadRequestBuffer_;          // keep track of request
     uint64_t            mpvReadRequestNBytes_;
+    // cache
+    uint64_t            cachedSize_=0;
 
 
 };
