@@ -17,26 +17,26 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    QString conduitControl     (BPlayer::controlPortName);
-    QString conduitStream   (BPlayer::streamPortName);
+    QString controlConduitPortName  (BPlayer::controlPortName);
+    QString streamConduitPortName   (BPlayer::streamPortName);
 
     QDir tempDir( QString("/tmp/%1-%2").arg(app.applicationName()).arg(app.applicationPid()) );
-    QDir frontendPath = tempDir.absolutePath() + QDir::separator() + "frontend";
     QDir backendPath =  tempDir.absolutePath();
+    QDir frontendPath = tempDir.absolutePath() + QDir::separator() + "frontend";
 
     if (tempDir.exists())   tempDir.removeRecursively();
     frontendPath.mkpath(".");
     backendPath.mkpath(".");
-    // conduit DATA
-    NetworkLocalServer  serverDataF,serverDataB;
-    connectServer(serverDataF,  serverDataB);
-    serverDataF.start( frontendPath.absolutePath() + QDir::separator() + conduitControl);
-    serverDataB.start( backendPath.absolutePath() + QDir::separator() + conduitControl);
-
-    NetworkLocalServer  serverStreamF,serverStreamB;
-    connectServer(serverStreamF,serverStreamB);
-    serverStreamF.start( frontendPath.absolutePath() + QDir::separator() + conduitStream);
-    serverStreamB.start( backendPath.absolutePath() + QDir::separator() + conduitStream);
+    // conduit CONTROL
+    NetworkLocalServer  serverFrontendControlConduit, serverBackendControlConduit;
+    connectServer(serverFrontendControlConduit,  serverBackendControlConduit);
+    serverFrontendControlConduit.start( frontendPath.absolutePath() + QDir::separator() + controlConduitPortName);
+    serverBackendControlConduit.start( backendPath.absolutePath() + QDir::separator() + controlConduitPortName);
+    // conduit STREAM
+    NetworkLocalServer  serverFrontendStreamConduit, serverBackendStreamConduit;
+    connectServer(serverFrontendStreamConduit,serverBackendStreamConduit);
+    serverFrontendStreamConduit.start( frontendPath.absolutePath() + QDir::separator() + streamConduitPortName);
+    serverBackendStreamConduit.start( backendPath.absolutePath() + QDir::separator() + streamConduitPortName);
 
     bool exitFlag = false;
     auto exitFn = std::async(std::launch::async, [&exitFlag]{ std::getchar(); exitFlag = true; });
@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
     qDebug() << "<ENTER> TO QUIT";
     auto retvalue = app.exec();
     exitFn.wait();
-    serverDataF.stop();
-    serverDataB.stop();
+    serverFrontendControlConduit.stop();
+    serverBackendControlConduit.stop();
     tempDir.removeRecursively();
     return retvalue;
 }

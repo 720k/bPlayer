@@ -39,7 +39,7 @@ void NetworkLocalServer::start(const QString &port) {
 
 void NetworkLocalServer::newConnectionAvailable() {
     if (socket_) {
-        qDebug() << serverName() << "Sorry I can accept only one socket";
+        qDebug() << serverName() << "Sorry I can accept only one connection";
         return;
     }
     socket_ = nextPendingConnection();
