@@ -1,14 +1,15 @@
 #pragma once
 #include <QLocalServer>
 #include <QLocalSocket>
-
 class NetworkLocalServer : public QLocalServer
 {
     Q_OBJECT
 public:
                         NetworkLocalServer(QObject *parent = nullptr);
+                        NetworkLocalServer(const QString& objectName, QObject *parent = nullptr);
 
                         void deleteSocket();
+
 
 signals:
     void                socketStateChanged(QLocalSocket::LocalSocketState socketState);
@@ -24,6 +25,9 @@ private slots:
     void                onSocketData();
 
 private:
+    void                print(QString str, const QByteArray& data=QByteArray());
+
     QLocalSocket*       socket_=nullptr;
+
 };
 

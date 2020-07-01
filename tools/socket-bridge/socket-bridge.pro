@@ -26,4 +26,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     ../../common/BPlayer.h \
+    ../../common/ConsoleColors.h \
     NetworkLocalServer.h
