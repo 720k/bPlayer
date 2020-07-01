@@ -148,8 +148,13 @@ QSlider::sub-page:disabled:horizontal {
          <property name="font">
           <font>
            <family>RobotoMono Nerd Font</family>
-           <pointsize>20</pointsize>
+           <pointsize>24</pointsize>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton:hover {
+	background-color: #333333;
+}</string>
          </property>
          <property name="text">
           <string></string>
@@ -173,12 +178,16 @@ QSlider::sub-page:disabled:horizontal {
          <property name="font">
           <font>
            <family>RobotoMono Nerd Font Mono</family>
-           <pointsize>20</pointsize>
+           <pointsize>24</pointsize>
           </font>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton:disabled {
 	color: #666666;
+}
+
+QToolButton:hover {
+	background-color: #333333;
 }</string>
          </property>
          <property name="text">
@@ -288,12 +297,16 @@ QSlider::sub-page:disabled:horizontal {
          <property name="font">
           <font>
            <family>RobotoMono Nerd Font</family>
-           <pointsize>20</pointsize>
+           <pointsize>24</pointsize>
           </font>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton:disabled {
 	color: #666666;
+}
+
+QToolButton:hover {
+	background-color: #333333;
 }</string>
          </property>
          <property name="text">
@@ -308,6 +321,12 @@ QSlider::sub-page:disabled:horizontal {
         <widget class="QSlider" name="volumeSlider">
          <property name="enabled">
           <bool>true</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
          </property>
          <property name="maximumSize">
           <size>
@@ -392,8 +411,13 @@ QSlider::sub-page:disabled:horizontal {
          <property name="font">
           <font>
            <family>RobotoMono Nerd Font</family>
-           <pointsize>20</pointsize>
+           <pointsize>24</pointsize>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton:hover {
+	background-color: #333333;
+}</string>
          </property>
          <property name="text">
           <string></string>
@@ -420,12 +444,16 @@ QSlider::sub-page:disabled:horizontal {
          <property name="font">
           <font>
            <family>RobotoMono Nerd Font</family>
-           <pointsize>20</pointsize>
+           <pointsize>24</pointsize>
           </font>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton:disabled {
 	color: #666666;
+}
+
+QToolButton:hover {
+	background-color: #333333;
 }</string>
          </property>
          <property name="text">
