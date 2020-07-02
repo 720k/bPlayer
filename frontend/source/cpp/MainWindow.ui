@@ -67,7 +67,7 @@ color: rgb(238, 238, 236);
 
 QSlider::handle:horizontal {
     background: #ff0000;
-    border: 1px solid #40000;
+    border: 1px solid #400000;
 	width: 14px;
     height: 14px;
      border-radius: 7px;

@@ -31,10 +31,10 @@ public slots:
     void                        mediaSeek(quint64 position);
     void                        tik();
     // backend -> bPlayer
-    void                        eventStateChanged(quint64 state);
-    void                        eventTimePos(quint64 positionInSeconds);
-    void                        mediaLength(quint64 length);
-    void                        playbackTime(quint64 time);
+    void                        eventStateChanged(quint32 state);
+    void                        eventTimePos(quint32 positionInSeconds);
+    void                        mediaLength(quint32 length);
+    void                        playbackTime(quint32 time);
 
 signals:
     void                        onMediaStart();
@@ -43,10 +43,10 @@ signals:
     void                        onTok();
     void                        onMediaSeek(quint64 position);
 
-    void                        onEventStateChanged(quint64 state);
-    void                        onEventTimePos(quint64 seconds);
-    void                        onMediaLength(quint64 length);
-    void                        onPlaybackTime(quint64 time);
+    void                        onEventStateChanged(quint32 state);
+    void                        onEventTimePos(quint32 seconds);
+    void                        onMediaLength(quint32 length);
+    void                        onPlaybackTime(quint32 time);
 
 private:
     void                        dispatchMessage(const Message& msg) override;
