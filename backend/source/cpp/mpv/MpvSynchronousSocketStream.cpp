@@ -50,9 +50,11 @@ void MpvSynchronousSocketStream::readSynchronized(char *buf, quint64 nbytes) {
 }
 
 void MpvSynchronousSocketStream::sizeSynchronized() {
-    CON << cORG << "[SIZE] " << cRST;
     if (cachedSize_)    terminateSynchrizedWithValue(cachedSize_);
-    else                protocol_->sizeRequest();
+    else {
+        CON << cORG << "[SIZE] " << cRST;
+        protocol_->sizeRequest();
+    }
 }
 
 void MpvSynchronousSocketStream::closeSynchronized() {

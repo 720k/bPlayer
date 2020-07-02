@@ -5,9 +5,33 @@ Windows 10 Console color support:
     𝗛𝗞𝗘𝗬_𝗖𝗨𝗥𝗥𝗘𝗡𝗧_𝗨𝗦𝗘𝗥\𝗖𝗼𝗻𝘀𝗼𝗹𝗲\𝗩𝗶𝗿𝘁𝘂𝗮𝗹𝗧𝗲𝗿𝗺𝗶𝗻𝗮𝗹𝗟𝗲𝘃𝗲𝗹 = 𝗱𝘄𝗼𝗿𝗱:𝟬𝟬𝟬𝟬𝟬𝟬𝟬𝟭
 
 
+
+VOLUME:
+#observe the property (34 is just un ID inserted in reply
+command:
+    {"command":["observe_property",34,"volume"] }
+reply:
+    {"request_id":0,"error":"success"}
+    ...
+    {"event":"property-change","id":34,"name":"volume","data":110.000000}
+    {"event":"property-change","id":34,"name":"volume","data":65.000000}
+
+range is 0 - 130%
+MUTE:
+command:
+    {"command":["observe_property",35,"mute"] }
+reply:
+    {"request_id":0,"error":"success"}
+    {"event":"property-change","id":35,"name":"mute","data":false}
+    ...
+    {"event":"property-change","id":35,"name":"mute","data":true}
+    {"event":"property-change","id":35,"name":"mute","data":false}
+
+
+
 EVENTS:
 
-AUDIO ONLY:
+AUDIO ONLY (without COVER):
 loadfile /home/.../Musica/test.mp3
 {"event":"start-file"}
 {"event":"tracks-changed"}

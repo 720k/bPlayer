@@ -48,17 +48,19 @@ MpvController::MpvController(QObject *parent) : QObject(parent)   {
 
 
 
-//    // Let us receive property change events with MPV_EVENT_PROPERTY_CHANGE if
-//    // this property changes.
+    // Let us receive property change events with MPV_EVENT_PROPERTY_CHANGE if
+    // this property changes.
     mpv_observe_property(mpvHandle_, 0, "playback-time", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpvHandle_, 0, "volume",        MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpvHandle_, 0, "mute",          MPV_FORMAT_FLAG);
 //    mpv_observe_property(mpvHandle_, 0, "time-pos", MPV_FORMAT_DOUBLE);
 //    mpv_observe_property(mpvHandle_, 0, "duration", MPV_FORMAT_DOUBLE);
 
 //    mpv_observe_property(m_mpvHandle, 0, "track-list", MPV_FORMAT_NODE);
 //    mpv_observe_property(m_mpvHandle, 0, "chapter-list", MPV_FORMAT_NODE);
 
-//    // Request log messages with level "info" or higher.
-//    // They are received as MPV_EVENT_LOG_MESSAGE.
+    // Request log messages with level "info" or higher.
+    // They are received as MPV_EVENT_LOG_MESSAGE.
     mpv_request_log_messages(mpvHandle_, "info"); // info
 
     // From this point on, the wakeup function will be called. The callback
@@ -116,6 +118,16 @@ void MpvController::mediaSeek(int position) {
     mpv_command_async(mpvHandle_, ReplyID::Seek, args);
 }
 
+void MpvController::setVolume(quint32 volume) {
+    volume_ = static_cast<double>(volume);
+    mpv_set_property_async(mpvHandle_, ReplyID::SetVolume, "volume",MPV_FORMAT_DOUBLE, &volume_);
+}
+
+void MpvController::setMute(bool mute) {
+    isMute_ = mute ? 1 : 0;
+    mpv_set_property_async(mpvHandle_, ReplyID::SetMute, "mute",MPV_FORMAT_FLAG, &isMute_);
+}
+
 void MpvController::quit() {
     mpv_terminate_destroy(mpvHandle_);
     mpvHandle_ = nullptr;
@@ -135,37 +147,49 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
     switch (event->event_id) {
         case MPV_EVENT_PROPERTY_CHANGE: {
             mpv_event_property *prop = (mpv_event_property *)event->data;
-            if(QString(prop->name) == "playback-time")  {// playback-time does the same thing as time-pos but works for streaming media
+            if(QString(prop->name) == "playback-time")  {// playback-time is like time-pos but works for streaming media
                 if(prop->format == MPV_FORMAT_DOUBLE) {
-                    int64_t curr =(int64_t) *(double*)prop->data;
-                    // 1/3 of second is enough for timeing notification
+                    quint32 curr =(quint32) *(double*)prop->data;
+                    // 1/3 of second is enough for u/i time notification
                     if (!previousTimerEvent_.isValid() || previousTimerEvent_.hasExpired(300) ) {
                         previousTimerEvent_.restart();
                         emit eventPlaybackTime(curr);
                     }
                 }
             }
-
-            if (strcmp(prop->name, "time-pos") == 0) {
-                if (prop->format == MPV_FORMAT_DOUBLE) {
-                    double time = *(double *)prop->data;
-                    emit eventTimePos(time);
-                } else if (prop->format == MPV_FORMAT_NONE) {
-                    // The property is unavailable, which probably means playback
-                    // was stopped.
-                }
-            } else {
-                if (strcmp(prop->name, "chapter-list") == 0 || strcmp(prop->name, "track-list") == 0)   {
-                    // Dump the properties as JSON for demo purposes.
-                    if (prop->format == MPV_FORMAT_NODE) {
-                        QVariant v = mpv::qt::node_to_variant((mpv_node *)prop->data);
-                        // Abuse JSON support for easily printing the mpv_node contents.
-                        QJsonDocument d = QJsonDocument::fromVariant(v);
-                        //                append_log("Change property " + QString(prop->name) + ":\n");
-                        //                append_log(d.toJson().data());
-                    }
+            else if(QString(prop->name) == "volume")  {
+                if(prop->format == MPV_FORMAT_DOUBLE) {
+                    quint32 volume =(quint32) *(double*)prop->data;
+                    emit eventVolume(volume);
                 }
             }
+            else if(QString(prop->name) == "mute")  {
+                if(prop->format == MPV_FORMAT_FLAG) {
+                    bool mute = *(int64_t*)prop->data;
+                    emit eventMute(mute);
+                }
+            }
+
+//            if (strcmp(prop->name, "time-pos") == 0) {
+//                if (prop->format == MPV_FORMAT_DOUBLE) {
+//                    double time = *(double *)prop->data;
+//                    emit eventTimePos(time);
+//                } else if (prop->format == MPV_FORMAT_NONE) {
+//                    // The property is unavailable, which probably means playback
+//                    // was stopped.
+//                }
+//            } else {
+//                if (strcmp(prop->name, "chapter-list") == 0 || strcmp(prop->name, "track-list") == 0)   {
+//                    // Dump the properties as JSON for demo purposes.
+//                    if (prop->format == MPV_FORMAT_NODE) {
+//                        QVariant v = mpv::qt::node_to_variant((mpv_node *)prop->data);
+//                        // Abuse JSON support for easily printing the mpv_node contents.
+//                        QJsonDocument d = QJsonDocument::fromVariant(v);
+//                        //                append_log("Change property " + QString(prop->name) + ":\n");
+//                        //                append_log(d.toJson().data());
+//                    }
+//                }
+
             break;
         }
         case MPV_EVENT_VIDEO_RECONFIG: {
@@ -204,9 +228,13 @@ void MpvController::dispatchMpvEvent(mpv_event *event)     {
         case MPV_EVENT_IDLE: emit eventStateChanged(ControlProtocol::EventState::Idle); break;
 
         case MPV_EVENT_FILE_LOADED: {
-            double len;
-            mpv_get_property(mpvHandle_, "duration", MPV_FORMAT_DOUBLE, &len);
-            emit eventMediaLength((int)len);
+            double value;
+            mpv_get_property(mpvHandle_, "duration", MPV_FORMAT_DOUBLE, &value);
+            emit eventMediaLength((quint32)value);
+            mpv_get_property(mpvHandle_, "volume-max", MPV_FORMAT_DOUBLE, &value);
+            emit eventVolumeMax((quint32)value);
+            mpv_get_property(mpvHandle_, "volume", MPV_FORMAT_DOUBLE, &value);
+            emit eventVolume((quint32)value);
             break;
         }
         default: ; // Ignore uninteresting or unknown events.

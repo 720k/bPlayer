@@ -30,14 +30,24 @@ private slots:
     //void socketError(AbstractSocket);
     void on_playButton_clicked();
     void closeConnection();
+
     void onTok();
-    void onEventStateChanged(quint64 state);
-    void onMediaLength(quint64 length);
-    void onPlaybackTime(quint64 time);
+    void onEventStateChanged(quint32 state);
+    void onMediaLength(quint32 length);
+    void onPlaybackTime(quint32 time);
+    void onEventVolume(quint32 volume);
+    void onEventVolumeMax(quint32 volume);
+    void onEventMute(bool mute);
+
     void on_actionTest_Window_triggered();
     void on_action_Quit_triggered();
     void on_stopButton_clicked();
     void on_timeSlider_sliderReleased();
+
+    void on_muteButton_clicked();
+
+
+    void on_volumeSlider_sliderMoved(int position);
 
 private:
     Ui::MainWindow *ui;
@@ -70,6 +80,8 @@ private:
     QString                         fileName_;
     TestWindow                      *testWindow_ =          nullptr;
     friend class                    TestWindow;
+    // local cache
+    bool                            mute_ = false;
 
     void                            updateWidgetStatus();
     void                            init();

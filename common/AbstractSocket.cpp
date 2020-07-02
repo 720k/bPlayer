@@ -45,7 +45,7 @@ void AbstractSocket::writeMessage(const QByteArray &message) {
         return;
     }
     qCDebug(catSocket).noquote() <<"<=="<< Utils::printableBA(message);
-    readBuffer_.clear();
+    //readBuffer_.clear();
     stream_ << message;
     flushSocket();
 }
@@ -61,13 +61,15 @@ QString AbstractSocket::serverName() const {
 }
 
 void AbstractSocket::readyRead() {
-    stream_.startTransaction();
-    stream_ >> readBuffer_;
-    //#todo if readBuffer_ is not enough for the request?
-    if (!stream_.commitTransaction())  return; // message complete?
-    qCDebug(catSocket).noquote() << "-->" << Utils::printableBA(readBuffer_);
-    emit messageReady(readBuffer_);
-    readBuffer_.clear();
+    while (socket_->bytesAvailable()) {
+        stream_.startTransaction();
+        stream_ >> readBuffer_;
+        //#todo if readBuffer_ is not enough for the request?
+        if (!stream_.commitTransaction())  return; // message complete?
+        qCDebug(catSocket).noquote() << "-->" << Utils::printableBA(readBuffer_);
+        emit messageReady(readBuffer_);
+        readBuffer_.clear();
+    };
 }
 
 void AbstractSocket::connected() {

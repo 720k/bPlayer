@@ -43,10 +43,13 @@ void MainWindow::init() {
     streamProtocols_.printDispatchTable();
 
 
-    connect(controlProtocol_,   &ControlProtocol::onTok,        this,&MainWindow::onTok);
+    connect(controlProtocol_,   &ControlProtocol::onTok,            this,&MainWindow::onTok);
     connect(controlProtocol_,   &ControlProtocol::onEventStateChanged, this, &MainWindow::onEventStateChanged);
     connect(controlProtocol_,   &ControlProtocol::onMediaLength,    this, &MainWindow::onMediaLength);
-    connect(controlProtocol_,   &ControlProtocol::onPlaybackTime,    this, &MainWindow::onPlaybackTime);
+    connect(controlProtocol_,   &ControlProtocol::onPlaybackTime,   this, &MainWindow::onPlaybackTime);
+    connect(controlProtocol_,   &ControlProtocol::onEventVolume,    this, &MainWindow::onEventVolume);
+    connect(controlProtocol_,   &ControlProtocol::onEventVolumeMax, this, &MainWindow::onEventVolumeMax);
+    connect(controlProtocol_,   &ControlProtocol::onEventMute,      this, &MainWindow::onEventMute);
 
     int id = QFontDatabase::addApplicationFont(":/font/font-roboto-nerd");
     if (id < 0) {
@@ -195,7 +198,7 @@ void MainWindow::socketStateChanged(AbstractSocket::SocketState state) {
 void MainWindow::on_playButton_clicked() {
     if (mediaState_ == MediaState::None)    on_action_Open_triggered();
     if (mediaState_ == MediaState::Playing) controlProtocol_->mediaPause(true);
-    if (mediaState_ == MediaState::Paused) controlProtocol_->mediaPause(false);
+    if (mediaState_ == MediaState::Paused)  controlProtocol_->mediaPause(false);
 }
 
 void MainWindow::closeConnection() {
@@ -210,7 +213,7 @@ void MainWindow::onTok() {
     }
 }
 
-void MainWindow::onEventStateChanged(quint64 state) {
+void MainWindow::onEventStateChanged(quint32 state) {
     switch (state) {
         case ControlProtocol::EventState::Pause:
             mediaState_ = MediaState::Paused;
@@ -229,14 +232,26 @@ void MainWindow::onEventStateChanged(quint64 state) {
     updateWidgetStatus();
 }
 
-void MainWindow::onMediaLength(quint64 length) {
+void MainWindow::onMediaLength(quint32 length) {
     ui->timeLabel->setText( Utils::formatTime(length) );
     ui->timeSlider->setMaximum(length);
 }
 
-void MainWindow::onPlaybackTime(quint64 time) {
+void MainWindow::onPlaybackTime(quint32 time) {
     ui->timePosLabel->setText( Utils::formatTime(time));
-    if (!ui->timeSlider->isSliderDown()) ui->timeSlider->setValue(time);
+    if (!ui->timeSlider->isSliderDown() && static_cast<int>(time) != ui->timeSlider->value()) ui->timeSlider->setValue(time);
+}
+
+void MainWindow::onEventVolume(quint32 volume) {
+    if (!ui->volumeSlider->isSliderDown() && static_cast<int>(volume) != ui->volumeSlider->value())  ui->volumeSlider->setValue(volume);
+}
+
+void MainWindow::onEventVolumeMax(quint32 volume)   {
+    ui->volumeSlider->setMaximum(volume);
+}
+
+void MainWindow::onEventMute(bool mute) {
+    ui->muteButton->setText( (mute_ = mute) ? "ﱝ" : "墳");
 }
 
 void MainWindow::on_actionTest_Window_triggered() {
@@ -253,4 +268,12 @@ void MainWindow::on_stopButton_clicked() {
 
 void MainWindow::on_timeSlider_sliderReleased() {
     controlProtocol_->mediaSeek(ui->timeSlider->value());
+}
+
+void MainWindow::on_muteButton_clicked() {
+    controlProtocol_->setMute(!mute_);
+}
+
+void MainWindow::on_volumeSlider_sliderMoved(int position) {
+    controlProtocol_->setVolume(position);
 }

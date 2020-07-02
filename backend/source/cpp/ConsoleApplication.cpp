@@ -93,16 +93,20 @@ void ConsoleApplication::init()    {
     connect(&streamProtocols_,  &ProtocolList::messageReady,    &streamSocket_, &AbstractSocket::writeMessage);
 
     // COMMANDS:    Control Protocol -> MPV Controller
-    connect(controlProtocol_, &ControlProtocol::onMediaStart,  mpvController_, &MpvController::mediaStart);
-    connect(controlProtocol_, &ControlProtocol::onMediaStop,  mpvController_, &MpvController::mediaStop);
-    connect(controlProtocol_, &ControlProtocol::onMediaPause,  mpvController_, &MpvController::mediaPause);
-    connect(controlProtocol_, &ControlProtocol::onMediaSeek,  mpvController_, &MpvController::mediaSeek);
+    connect(controlProtocol_, &ControlProtocol::onMediaStart,   mpvController_, &MpvController::mediaStart);
+    connect(controlProtocol_, &ControlProtocol::onMediaStop,    mpvController_, &MpvController::mediaStop);
+    connect(controlProtocol_, &ControlProtocol::onMediaPause,   mpvController_, &MpvController::mediaPause);
+    connect(controlProtocol_, &ControlProtocol::onMediaSeek,    mpvController_, &MpvController::mediaSeek);
+    connect(controlProtocol_, &ControlProtocol::onSetVolume,    mpvController_, &MpvController::setVolume);
+    connect(controlProtocol_, &ControlProtocol::onSetMute,      mpvController_, &MpvController::setMute);
 
     // EVENTS:      MPV Controller -> Control Protocol
     connect(mpvController_, &MpvController::eventStateChanged,  controlProtocol_, &ControlProtocol::eventStateChanged);
     connect(mpvController_, &MpvController::eventMediaLength,   controlProtocol_, &ControlProtocol::mediaLength);
     connect(mpvController_, &MpvController::eventPlaybackTime,  controlProtocol_, &ControlProtocol::playbackTime);
-
+    connect(mpvController_, &MpvController::eventVolume,        controlProtocol_, &ControlProtocol::eventVolume);
+    connect(mpvController_, &MpvController::eventVolumeMax,     controlProtocol_, &ControlProtocol::eventVolumeMax);
+    connect(mpvController_, &MpvController::eventMute,          controlProtocol_, &ControlProtocol::eventMute);
     tryConnecting();
 }
 

@@ -15,6 +15,12 @@ QMap<int, QString> ControlProtocol::IDNames_ {
     {ID::MediaLength,       "MediaLength"},
     {ID::PlaybackTime,      "PlaybackTime"},
     {ID::MediaSeek,         "MediaSeek"},
+    {ID::EventVolume,       "EventVolume"},
+    {ID::EventVolumeMax,    "EventVolumeMax"},
+    {ID::EventMute,         "EventMute"},
+    {ID::SetVolume,         "SetVolume"},
+    {ID::SetMute,           "SetMute"},
+
     {ID::Last,              "Last"},
 };
 
@@ -44,6 +50,14 @@ void ControlProtocol::tik() {
     emit sendMessage(Message::make(ID::Tik));
 }
 
+void ControlProtocol::setVolume(quint32 volume) {
+    emit sendMessage(Message::make(ID::SetVolume, volume) );
+}
+
+void ControlProtocol::setMute(bool mute) {
+    emit sendMessage(Message::make(ID::SetMute, mute) );
+}
+
 void ControlProtocol::eventStateChanged(quint32 state) {
     emit sendMessage(Message::make(ID::EventStateChange, state));
 }
@@ -58,6 +72,18 @@ void ControlProtocol::mediaLength(quint32 length) {
 
 void ControlProtocol::playbackTime(quint32 time) {
     emit sendMessage(Message::make(ID::PlaybackTime, time));
+}
+
+void ControlProtocol::eventVolume(quint32 volume) {
+    emit sendMessage(Message::make(ID::EventVolume, volume) );
+}
+
+void ControlProtocol::eventVolumeMax(quint32 volume) {
+    emit sendMessage(Message::make(ID::EventVolumeMax, volume) );
+}
+
+void ControlProtocol::eventMute(bool mute) {
+    emit sendMessage(Message::make(ID::EventMute, mute) );
 }
 
 void ControlProtocol::dispatchMessage(const Message &msg) {
@@ -106,6 +132,29 @@ void ControlProtocol::dispatchMessage(const Message &msg) {
             emit onMediaSeek(position);
             break;
         }
+        case ID::EventVolume:
+            stream >> value;
+            emit onEventVolume(value);
+            break;
+        case ID::EventVolumeMax:
+            stream >> value;
+            emit onEventVolumeMax(value);
+            break;
+        case ID::EventMute: {
+            bool mute;
+            stream >> mute;
+            emit onEventMute(mute);
+            break;
+        }
+        case ID::SetVolume:
+            stream >> value;
+            emit onSetVolume(value);
+            break;
+        case ID::SetMute:
+            bool mute;
+            stream >> mute;
+            emit onSetMute(mute);
+            break;
         default:
             break;
     }
