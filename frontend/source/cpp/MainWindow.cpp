@@ -18,6 +18,7 @@
 #include <QTimer>
 #include <chrono>
 #include <QTime>
+#include <QFileInfo>
 Q_LOGGING_CATEGORY(catApp, "App")
 
 using namespace std::literals::chrono_literals;
@@ -128,6 +129,13 @@ void MainWindow::stopTicking() {
 
 void MainWindow::timerEvent(QTimerEvent *event) {   Q_UNUSED(event)
     controlProtocol_->tik();
+                                                }
+
+void MainWindow::play(const QString &fileName) {
+    if (!fileName.isEmpty()) fileName_ = fileName;
+    ui->filenameLabel->setText(QFileInfo(fileName_).fileName());
+    streamProtocol_->setFileName(fileName_);
+    controlProtocol_->mediaStart();
 }
 
 void MainWindow::connectionTypeChanged() {
@@ -159,13 +167,14 @@ void MainWindow::connectionTypeChanged() {
     connect(&streamProtocols_,&ProtocolList::messageReady,     streamSocket_, &AbstractSocket::writeMessage);
 }
 
+
+
 void MainWindow::on_action_Open_triggered() {
     auto fileName = QFileDialog::getOpenFileName(this,
                             tr("Open File"), QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).at(0),
                             tr("Video (*.mov *.mp4 *.avi *.mpeg *.mpg);Audio (*.m4a *.mp3 *.wav);Any file (*.*)"));
     if (fileName.isNull()) return;
-    streamProtocol_->setFileName(fileName_ = fileName);
-    controlProtocol_->mediaStart();
+    play(fileName);
 }
 
 void MainWindow::checkState() {
@@ -196,7 +205,10 @@ void MainWindow::socketStateChanged(AbstractSocket::SocketState state) {
 
 
 void MainWindow::on_playButton_clicked() {
-    if (mediaState_ == MediaState::None)    on_action_Open_triggered();
+    if (mediaState_ == MediaState::None)    {
+        if (fileName_.isEmpty())    on_action_Open_triggered();
+        else                        play();
+    }
     if (mediaState_ == MediaState::Playing) controlProtocol_->mediaPause(true);
     if (mediaState_ == MediaState::Paused)  controlProtocol_->mediaPause(false);
 }

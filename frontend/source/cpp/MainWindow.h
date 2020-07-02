@@ -94,7 +94,7 @@ private:
     void                            checkState();
     void                            setConnectionState(ConnectionState state);
     void                            timerEvent(QTimerEvent *event) override;
-
+    void                            play(const QString &filename = QString());
 };
 
 Q_DECLARE_LOGGING_CATEGORY(catApp)
