@@ -27,8 +27,8 @@ public:
     bool                    isFirstInstance();
     void                    setStreamPortPath(const QString& streamPortPath) { streamPortPath_ = streamPortPath; }
     QString                 streamPortPath() const { return streamPortPath_; }
-    void                    setDataPortPath(const QString& dataPortPath) { dataPortPath_ = dataPortPath; }
-    QString                 dataPortPath() const { return dataPortPath_; }
+//    void                    setDataPortPath(const QString& dataPortPath) { dataPortPath_ = dataPortPath; }
+//    QString                 dataPortPath() const { return dataPortPath_; }
     void                    searchConduitPath();
 
 private slots:
@@ -45,17 +45,14 @@ private:
 
     bool                            singleInstance_=    false;
 
-    QString                         dataPortPath_=      "";
-    LocalSocket                     dataSocket_;
-    ProtocolList                    dataProtocols_;
     TestProtocol                    *testProtocol_=     nullptr;
     ControlProtocol                 *controlProtocol_=  nullptr;
+    StreamProtocol                  *streamProtocol_=   nullptr;
     ConnectionState                 connectionState_=   ConnectionState::Offline;
 
     QString                         streamPortPath_=    "";
     LocalSocket                     streamSocket_;
     ProtocolList                    streamProtocols_;
-    StreamProtocol                  *streamProtocol_=   nullptr;
     MpvController*                  mpvController_;
     MpvSynchronousSocketStream*     mpvSynchronousSocketStream_;
     static QMap<ConnectionState,QString>        connectionStateName_;

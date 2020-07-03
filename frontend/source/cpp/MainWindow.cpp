@@ -34,15 +34,12 @@ QMap<MainWindow::ConnectionState, QString>  MainWindow::connectionStateName_ = {
 
 void MainWindow::init() {
     connectionTypeChanged();
-    // DATA conduit
-    dataProtocols_.insert(testProtocol_ =    new TestProtocol(&dataProtocols_));
-    dataProtocols_.insert(controlProtocol_ = new ControlProtocol(&dataProtocols_));
-    dataProtocols_.printDispatchTable();
 
     // STREAM conduit
     streamProtocols_.insert(streamProtocol_ =  new StreamProtocolFileRead(&streamProtocols_));
+    streamProtocols_.insert(testProtocol_ =    new TestProtocol(&streamProtocols_));
+    streamProtocols_.insert(controlProtocol_ = new ControlProtocol(&streamProtocols_));
     streamProtocols_.printDispatchTable();
-
 
     connect(controlProtocol_,   &ControlProtocol::onTok,            this,&MainWindow::onTok);
     connect(controlProtocol_,   &ControlProtocol::onEventStateChanged, this, &MainWindow::onEventStateChanged);
@@ -71,7 +68,6 @@ bool MainWindow::isLocalSocket() const {
 #endif
 }
 
-
 MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     updateWidgetStatus();
@@ -83,7 +79,6 @@ MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent), ui(new Ui::MainW
 MainWindow::~MainWindow() {
     delete ui;
 }
-
 
 void MainWindow::updateWidgetStatus() {
     bool online = isOnline();
@@ -103,14 +98,12 @@ void MainWindow::updateWidgetStatus() {
 
 
 void MainWindow::tryConnecting() {
-    if (dataSocket_->isConnected() && streamSocket_->isConnected()) return;
+    if (streamSocket_->isConnected()) return;
     setConnectionState(ConnectionState::Connecting);
     if (isLocalSocket())    {
         QString processName = "socket-bridge";
-        if (dataSocket_->isUnconnected())   dataSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::controlPortName), processName) );
         if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::streamPortName), processName) );
     } else {
-        if (dataSocket_->isUnconnected())   dataSocket_->connectToServer(BPlayer::locolhost, BPlayer::dataPortNumber);
         if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::locolhost, BPlayer::streamPortNumber);
     }
 }
@@ -139,35 +132,21 @@ void MainWindow::play(const QString &fileName) {
 }
 
 void MainWindow::connectionTypeChanged() {
-    if (dataSocket_) {
-        dataSocket_->disconnect(); // no strings attached
-        dataSocket_->deleteLater();
-    }
     if (streamSocket_) {
         streamSocket_->disconnect(); // no strings attached
         streamSocket_->deleteLater();
     }
 
     if (isLocalSocket())    {
-        dataSocket_ = new LocalSocket();
         streamSocket_ = new LocalSocket();
     } else {
-        dataSocket_ = new TcpSocket();
         streamSocket_ = new TcpSocket();
     }
-
-    // data socket <-> data Protocols
-    connect(dataSocket_,&AbstractSocket::stateChanged,    this, &MainWindow::socketStateChanged);
-    connect(dataSocket_,&AbstractSocket::messageReady,    &dataProtocols_, &ProtocolList::decodeMessage);
-    connect(&dataProtocols_,&ProtocolList::messageReady,     dataSocket_, &AbstractSocket::writeMessage);
-
     // stream socket <-> stream Protocols
     connect(streamSocket_,&AbstractSocket::stateChanged,    this, &MainWindow::socketStateChanged);
     connect(streamSocket_,&AbstractSocket::messageReady,    &streamProtocols_, &ProtocolList::decodeMessage);
     connect(&streamProtocols_,&ProtocolList::messageReady,     streamSocket_, &AbstractSocket::writeMessage);
 }
-
-
 
 void MainWindow::on_action_Open_triggered() {
     auto fileName = QFileDialog::getOpenFileName(this,
@@ -179,11 +158,11 @@ void MainWindow::on_action_Open_triggered() {
 
 void MainWindow::checkState() {
     if (connectionState_ == ConnectionState::Connecting) {
-        if (dataSocket_->isConnected() && streamSocket_->isConnected()) setConnectionState(ConnectionState::Online);
-        else                                                            QTimer::singleShot(3s, this, &MainWindow::tryConnecting);
+        if (streamSocket_->isConnected())   setConnectionState(ConnectionState::Online);
+        else                                QTimer::singleShot(3s, this, &MainWindow::tryConnecting);
     }
     if (connectionState_ == ConnectionState::Online) {
-        if (dataSocket_->isUnconnected() || streamSocket_->isUnconnected()) {
+        if (streamSocket_->isUnconnected()) {
             setConnectionState(ConnectionState::Connecting);
             QTimer::singleShot(3s, this, &MainWindow::tryConnecting);
         } else {
@@ -203,7 +182,6 @@ void MainWindow::socketStateChanged(AbstractSocket::SocketState state) {
     if (state == AbstractSocket::SocketState::ConnectedState || state == AbstractSocket::SocketState::UnconnectedState)  checkState();
 }
 
-
 void MainWindow::on_playButton_clicked() {
     if (mediaState_ == MediaState::None)    {
         if (fileName_.isEmpty())    on_action_Open_triggered();
@@ -214,7 +192,7 @@ void MainWindow::on_playButton_clicked() {
 }
 
 void MainWindow::closeConnection() {
-    dataSocket_->disconnectFromServer();
+    streamSocket_->disconnectFromServer();
     connectionState_ = ConnectionState::Offline;
 }
 

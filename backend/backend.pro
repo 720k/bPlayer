@@ -43,6 +43,7 @@ SOURCES += \
     ../common/Utils.cpp
 
 HEADERS += \
+    ../common/BPlayer.h \
     source/cpp/ConsoleApplication.h \
     source/cpp/common/ProtocolList.h \
     source/cpp/mpv/MpvController.h \

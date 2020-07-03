@@ -15,11 +15,9 @@ int main(int argc, char *argv[])    {
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOptions({
-             {{"dp", "data-port"},  QCoreApplication::translate("main", "Data Port"),QCoreApplication::translate("main", "Port")},
              {{"sp", "stream-port"},QCoreApplication::translate("main", "Stream Port"),QCoreApplication::translate("main", "Port")},
     });
     parser.process(*dynamic_cast<QCoreApplication*>(&app));
-    if (parser.isSet("data-port"))      app.setDataPortPath(parser.value("data-port"));
     if (parser.isSet("stream-port"))    app.setStreamPortPath(parser.value("stream-port"));
     bool exitFlag = false;
     auto exitFn = std::async(std::launch::async, [&exitFlag]{ std::getchar(); exitFlag = true; });

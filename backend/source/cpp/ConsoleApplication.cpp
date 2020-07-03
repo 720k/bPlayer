@@ -40,26 +40,15 @@ ConsoleApplication::~ConsoleApplication()   {
 }
 
 
-
-
 void ConsoleApplication::searchConduitPath() {
     QString processName = "socket-bridge";
-    // first check bridge!
-    if (dataPortPath_.isEmpty())    dataPortPath_ = Utils::portNameFromProcess(BPlayer::controlPortName, processName);
     if (streamPortPath_.isEmpty())  streamPortPath_ = Utils::portNameFromProcess(BPlayer::streamPortName, processName);
-
-    // then check Remote-Viewer process
     processName = "remote-viewer";
-    if (dataPortPath_.isEmpty())    dataPortPath_ = Utils::portNameFromProcess(BPlayer::controlPortName, processName);
     if (streamPortPath_.isEmpty())  streamPortPath_ = Utils::portNameFromProcess(BPlayer::streamPortName, processName);
-
-    // check existance
-    if (!QFile::exists(dataPortPath_) || !QFile::exists(streamPortPath_)) {
-        qCCritical(catApp) << dataPortPath_ << (QFile::exists(dataPortPath_) ? "FOUND" : "NOT FOUND");
+    if (!QFile::exists(streamPortPath_)) {
         qCCritical(catApp) << streamPortPath_ << (QFile::exists(streamPortPath_) ? "FOUND" : "NOT FOUND");
         exit(20);
     }
-    qCInfo(catApp) << "data port path = " << dataPortPath_;
     qCInfo(catApp) << "stream port path = " << streamPortPath_;
 }
 
@@ -67,21 +56,12 @@ void ConsoleApplication::init()    {
     qCDebug(catApp).noquote() << cORG;
     searchConduitPath();
 
-    dataSocket_.setObjectName("DataSocket");
     streamSocket_.setObjectName("StreamSocket");
-
-    // DATA conduit
-    dataProtocols_.insert(testProtocol_=     new TestProtocol());
-    dataProtocols_.insert(controlProtocol_ = new ControlProtocol());
-    dataProtocols_.printDispatchTable();
-    connect(&dataSocket_,       &AbstractSocket::stateChanged,  this, &ConsoleApplication::socketStateChanged);
-    connect(&dataSocket_,       &AbstractSocket::messageReady,  &dataProtocols_, &ProtocolList::decodeMessage);
-    connect(&dataProtocols_,    &ProtocolList::messageReady,    &dataSocket_, &AbstractSocket::writeMessage);
-
-
     // STREAM conduit
     mpvSynchronousSocketStream_ = new MpvSynchronousSocketStream(this);
     streamProtocols_.insert(streamProtocol_=   new StreamProtocol(mpvSynchronousSocketStream_));
+    streamProtocols_.insert(testProtocol_=     new TestProtocol());
+    streamProtocols_.insert(controlProtocol_ = new ControlProtocol());
     streamProtocols_.printDispatchTable();
 
     mpvController_ = new MpvController(this);
@@ -112,7 +92,6 @@ void ConsoleApplication::init()    {
 
 
 void ConsoleApplication::closing()  {
-    dataSocket_.disconnectFromServer();
     streamSocket_.disconnectFromServer();
     connectionState_ = ConnectionState::Offline;
 
@@ -120,7 +99,6 @@ void ConsoleApplication::closing()  {
     Utils::destroy(controlProtocol_);
     Utils::destroy(testProtocol_);
 }
-
 
 int ConsoleApplication::run() {
     if (isSingleInstance() && !isFirstInstance()) return 200;
@@ -143,11 +121,11 @@ bool ConsoleApplication::isFirstInstance() {
 
 void ConsoleApplication::checkState() {
     if (connectionState_ == ConnectionState::Connecting) {
-        if (dataSocket_.isConnected() && streamSocket_.isConnected())   setConnectionState(ConnectionState::Online);
-        else                                                            QTimer::singleShot(3s, this, &ConsoleApplication::tryConnecting);
+        if (streamSocket_.isConnected() && streamSocket_.isConnected())     setConnectionState(ConnectionState::Online);
+        else                                                                QTimer::singleShot(3s, this, &ConsoleApplication::tryConnecting);
     }
     if (connectionState_ == ConnectionState::Online) {
-        if (dataSocket_.isUnconnected() || streamSocket_.isUnconnected()) {
+        if (streamSocket_.isUnconnected() || streamSocket_.isUnconnected()) {
             setConnectionState(ConnectionState::Connecting);
             QTimer::singleShot(3s, this, &ConsoleApplication::tryConnecting);
         }
@@ -159,9 +137,8 @@ void ConsoleApplication::setConnectionState(ConsoleApplication::ConnectionState 
 }
 
 void ConsoleApplication::tryConnecting() {
-    if (dataSocket_.isConnected() && streamSocket_.isConnected()) return;
+    if (streamSocket_.isConnected() && streamSocket_.isConnected()) return;
     setConnectionState(ConnectionState::Connecting);
-    if (dataSocket_.isUnconnected())    dataSocket_.connectToServer(dataPortPath_);
     if (streamSocket_.isUnconnected())  streamSocket_.connectToServer(streamPortPath_);
 }
 

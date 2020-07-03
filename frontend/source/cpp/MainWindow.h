@@ -57,20 +57,13 @@ private:
                                       Online=       0x00c8ff,
                                       Ready=        0x07fa0b,
                                     };
-    enum class MediaState : int    { None,
-                                      Loading,
-                                      Ready,
-                                      Paused,
-                                      Playing,
-                                      Seeking};
-    AbstractSocket                  *dataSocket_ =          nullptr;
-    ProtocolList                    dataProtocols_;
-    TestProtocol                    *testProtocol_ =        nullptr;
-    ControlProtocol                 *controlProtocol_ =     nullptr;
+    enum class MediaState : int    { None, Loading, Ready, Paused, Playing, Seeking};
 
     AbstractSocket                  *streamSocket_ =        nullptr;
     ProtocolList                    streamProtocols_;
     StreamProtocolFileRead          *streamProtocol_ =      nullptr;
+    TestProtocol                    *testProtocol_ =        nullptr;
+    ControlProtocol                 *controlProtocol_ =     nullptr;
 
     MediaState                      mediaState_         =   MediaState::None;
     ConnectionState                 connectionState_    =   ConnectionState::Offline;
@@ -88,7 +81,6 @@ private:
     bool                            isLocalSocket() const;
     bool                            isOnline() const { return connectionState_ == ConnectionState::Ready; }
     void                            tryConnecting();
-//    void                            retry() ;
     void                            startTicking();
     void                            stopTicking();
     void                            checkState();

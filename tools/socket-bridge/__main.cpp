@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    QString controlConduitPortName  (BPlayer::controlPortName);
+    //QString controlConduitPortName  (BPlayer::controlPortName);
     QString streamConduitPortName   (BPlayer::streamPortName);
 
     QDir tempDir( QString("/tmp/%1-%2").arg(app.applicationName()).arg(app.applicationPid()) );
@@ -27,11 +27,13 @@ int main(int argc, char *argv[])
     if (tempDir.exists())   tempDir.removeRecursively();
     frontendPath.mkpath(".");
     backendPath.mkpath(".");
+
     // conduit CONTROL
-    NetworkLocalServer  controlConduitFrontendServer("Control::Frontend"), controlConduitBackendServer("Control::Backend");
-    createConduitBetweenServer(controlConduitFrontendServer,  controlConduitBackendServer);
-    controlConduitFrontendServer.start( frontendPath.absolutePath() + QDir::separator() + controlConduitPortName);
-    controlConduitBackendServer.start( backendPath.absolutePath() + QDir::separator() + controlConduitPortName);
+//    NetworkLocalServer  controlConduitFrontendServer("Control::Frontend"), controlConduitBackendServer("Control::Backend");
+//    createConduitBetweenServer(controlConduitFrontendServer,  controlConduitBackendServer);
+//    controlConduitFrontendServer.start( frontendPath.absolutePath() + QDir::separator() + controlConduitPortName);
+//    controlConduitBackendServer.start( backendPath.absolutePath() + QDir::separator() + controlConduitPortName);
+
     // conduit STREAM
     NetworkLocalServer  streamConduitFrontendServer("Stream::Frontend"), streamConduitBackendServer("Stream::Backend");
     createConduitBetweenServer(streamConduitFrontendServer, streamConduitBackendServer);
@@ -48,8 +50,10 @@ int main(int argc, char *argv[])
     qDebug() << "<ENTER> TO QUIT";
     auto retvalue = app.exec();
     exitFn.wait();
-    controlConduitFrontendServer.stop();
-    controlConduitBackendServer.stop();
+//    controlConduitFrontendServer.stop();
+//    controlConduitBackendServer.stop();
+    streamConduitFrontendServer.stop();
+    streamConduitBackendServer.stop();
     tempDir.removeRecursively();
     return retvalue;
 }
