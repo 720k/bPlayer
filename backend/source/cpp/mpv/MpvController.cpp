@@ -38,12 +38,15 @@ MpvController::MpvController(QObject *parent) : QObject(parent)   {
     // --input-vo-keyboard on the manpage.
     mpv_set_option_string(mpvHandle_, "input-vo-keyboard", "yes");
 
-    //    mpv_set_option_string(m_mpvHandle, "cache", "yes");
-//    mpv_set_option_string(m_mpvHandle, "cache-secs", "5");
-//    mpv_set_option_string(m_mpvHandle, "cache-pause", "yes");
-//    mpv_set_option_string(m_mpvHandle, "cache-pause-initial", "yes");
-//    mpv_set_option_string(m_mpvHandle, "cache-pause-wait", "5");
-//    mpv_set_option_string(m_mpvHandle, "stream-buffer-size", "256000000");
+    //cache 5 secs
+    //#hardcoded: cache can be force via 'profile'
+    mpv_set_option_string(mpvHandle_, "cache", "yes");
+    mpv_set_option_string(mpvHandle_, "cache-secs", "5");
+    mpv_set_option_string(mpvHandle_, "demuxer-max-bytes", "16777216"); // 16 MiB
+    mpv_set_option_string(mpvHandle_, "demuxer-readahead-secs", "5");
+    mpv_set_option_string(mpvHandle_, "cache-pause-initial", "yes");
+    mpv_set_option_string(mpvHandle_, "cache-pause", "yes");
+    mpv_set_option_string(mpvHandle_, "cache-pause-wait", "5");
 
 
 
