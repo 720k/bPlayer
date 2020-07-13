@@ -38,6 +38,14 @@ QString printableNumber(double no) {
     return QString::number(no,'f',3);
 }
 
+QString formatTime(quint64 seconds) {
+    std::chrono::seconds secs(seconds);
+    int hh = std::chrono::duration_cast<std::chrono::hours>(secs).count();
+    int mm = std::chrono::duration_cast<std::chrono::minutes>(secs).count();
+    int ss = seconds % 60;
+    return QString("%1:%2.%3").arg(hh,2,10,QChar('0')).arg(mm,2,10,QChar('0')).arg(ss,2,10,QChar('0'));
+}
+
 #ifdef Q_OS_LINUX
 QString threadName(QString text) {
     pid_t tid = static_cast<pid_t>(syscall (SYS_gettid));
@@ -83,14 +91,6 @@ qint64          getProcessID(const QString& processName) {
 QString portNameFromProcess(const QString &portName, const QString &ProcessName) {
     int pid = Utils::getProcessID(ProcessName);
     return pid>0 ? QString("/tmp/%1-%2/%3").arg(ProcessName).arg(pid).arg(portName) : "";
-}
-
-QString formatTime(quint64 seconds) {
-    std::chrono::seconds secs(seconds);
-    int hh = std::chrono::duration_cast<std::chrono::hours>(secs).count();
-    int mm = std::chrono::duration_cast<std::chrono::minutes>(secs).count();
-    int ss = seconds % 60;
-    return QString("%1:%2.%3").arg(hh,2,10,QChar('0')).arg(mm,2,10,QChar('0')).arg(ss,2,10,QChar('0'));
 }
 
 #endif

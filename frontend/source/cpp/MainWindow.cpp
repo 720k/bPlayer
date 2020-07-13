@@ -64,7 +64,7 @@ bool MainWindow::isLocalSocket() const {
 #ifdef Q_OS_LINUX
     return true;
 #else
-    return false;
+    return true;
 #endif
 }
 
@@ -102,7 +102,11 @@ void MainWindow::tryConnecting() {
     setConnectionState(ConnectionState::Connecting);
     if (isLocalSocket())    {
         QString processName = "socket-bridge";
+#ifdef Q_OS_LINUX
         if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::streamPortName), processName) );
+#else
+        if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::streamPortName);
+#endif
     } else {
         if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::locolhost, BPlayer::streamPortNumber);
     }

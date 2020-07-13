@@ -1,10 +1,13 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    tools/socket-bridge \
     frontend \
-    backend \
 
+unix {
+SUBDIRS += \
+    backend \
+    tools/socket-bridge \
+}
 DISTFILES += \
     text/ToDo.txt \
     text/KnownIssues.txt \
