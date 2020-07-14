@@ -78,7 +78,6 @@ private:
 
     void                            updateWidgetStatus();
     void                            init();
-    bool                            isLocalSocket() const;
     bool                            isOnline() const { return connectionState_ == ConnectionState::Ready; }
     void                            tryConnecting();
     void                            startTicking();

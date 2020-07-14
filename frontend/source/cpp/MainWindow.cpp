@@ -66,13 +66,6 @@ void MainWindow::init() {
     testWindow_ = new TestWindow(this);
 }
 
-bool MainWindow::isLocalSocket() const {
-#ifdef Q_OS_LINUX
-    return true;
-#else
-    return true;
-#endif
-}
 
 MainWindow::MainWindow(QWidget *parent)  : QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
@@ -106,16 +99,14 @@ void MainWindow::updateWidgetStatus() {
 void MainWindow::tryConnecting() {
     if (streamSocket_->isConnected()) return;
     setConnectionState(ConnectionState::Connecting);
-    if (isLocalSocket())    {
-        QString processName = "socket-bridge";
+    QString processName = "socket-bridge";
 #ifdef Q_OS_LINUX
-        if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::streamPortName), processName) );
+    // when CLIENT === HOST, #todo: use  flag or argument instead of OS
+    if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(Utils::portNameFromProcess(QString("frontend/%1").arg(BPlayer::streamPortName), processName) );
 #else
-        if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::streamPortName);
+    if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::streamPortName);
 #endif
-    } else {
-        //if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::locolhost, BPlayer::streamPortNumber);
-    }
+
 }
 
 void MainWindow::startTicking() {
@@ -146,12 +137,7 @@ void MainWindow::connectionTypeChanged() {
         streamSocket_->disconnect(); // no strings attached
         streamSocket_->deleteLater();
     }
-
-    if (isLocalSocket())    {
-        streamSocket_ = new LocalSocket();
-    } else {
-        streamSocket_ = new TcpSocket();
-    }
+    streamSocket_ = new LocalSocket();
     // stream socket <-> stream Protocols
     connect(streamSocket_,&AbstractSocket::stateChanged,    this, &MainWindow::socketStateChanged);
     connect(streamSocket_,&AbstractSocket::messageReady,    &streamProtocols_, &ProtocolList::decodeMessage);
