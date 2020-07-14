@@ -70,38 +70,35 @@ color: rgb(238, 238, 236);
        <bool>true</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true">QSlider::groove:horizontal {
-    /*border: 1px solid #999999;*/
-	height: 6px;
+       <string notr="true">.QSlider {
+    min-height:16px;
+    max-height: 70px;
 }
-
-QSlider::handle:horizontal {
+.QSlider::groove:horizontal {
+	border: 1px solid #262626;
+	height: 6px;
+	margin: 0 12px;
+}
+.QSlider::handle:horizontal {
     background: #ff0000;
     border: 1px solid #400000;
 	width: 14px;
-    height: 14px;
-     border-radius: 7px;
+    border-radius: 8px;
+	margin: -5px -8px;
 }
-
-QSlider::add-page:horizontal {
+.QSlider::add-page:horizontal {
     background: #333333;
 }
-
-QSlider::sub-page:horizontal {
+.QSlider::sub-page:horizontal {
     background: #ff0000;
 }
-
 /* DISABLED*/
-QSlider::handle:disabled:horizontal {
-    background: #660000;
-   
-}
-
-QSlider::sub-page:disabled:horizontal {
+.QSlider::handle:disabled:horizontal {
     background: #660000;
 }
-
-</string>
+.QSlider::sub-page:disabled:horizontal {
+    background: #660000;
+}</string>
       </property>
       <property name="value">
        <number>6</number>
@@ -335,42 +332,43 @@ QToolButton:hover {
          <property name="minimumSize">
           <size>
            <width>80</width>
-           <height>0</height>
+           <height>16</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>80</width>
-           <height>16777215</height>
+           <height>70</height>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">QSlider::groove:horizontal {
-    /*border: 1px solid #999999;*/
-	height: 6px;
+          <string notr="true">.QSlider {
+    min-height:16px;
+    max-height: 70px;
 }
-
-QSlider::handle:horizontal {
+.QSlider::groove:horizontal {
+	border: 1px solid #262626;
+	height: 6px;
+	margin: 0 12px;
+}
+.QSlider::handle:horizontal {
     background: #ffffff;
     border: 1px solid #404040;
 	width: 14px;
-    height: 14px;
-     border-radius: 7px;
+    border-radius: 8px;
+	margin: -5px -8px;
 }
-
-QSlider::add-page:horizontal {
+.QSlider::add-page:horizontal {
     background: #333333;
 }
-
-QSlider::sub-page:horizontal {
+.QSlider::sub-page:horizontal {
     background: #ffffff;
 }
 /* DSIABLED*/
-QSlider::handle:disabled:horizontal {
+.QSlider::handle:disabled:horizontal {
     background: #666666;
 }
-
-QSlider::sub-page:disabled:horizontal {
+.QSlider::sub-page:disabled:horizontal {
     background: #666666;
 }</string>
          </property>
@@ -519,7 +517,7 @@ QToolButton:hover {
      <x>0</x>
      <y>0</y>
      <width>691</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="styleSheet">
