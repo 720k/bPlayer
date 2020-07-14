@@ -56,6 +56,12 @@ void MainWindow::init() {
         QString family = QFontDatabase::applicationFontFamilies(id).at(0);
         QFont nerd(family);
         qApp->setFont(nerd);
+        ui->playButton->setFont(nerd);
+        ui->stopButton->setFont(nerd);
+        ui->muteButton->setFont(nerd);
+        ui->prefsButton->setFont(nerd);
+        ui->enlargeButton->setFont(nerd);
+        ui->ledLabel->setFont(nerd);
     }
     testWindow_ = new TestWindow(this);
 }
@@ -108,7 +114,7 @@ void MainWindow::tryConnecting() {
         if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::streamPortName);
 #endif
     } else {
-        if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::locolhost, BPlayer::streamPortNumber);
+        //if (streamSocket_->isUnconnected()) streamSocket_->connectToServer(BPlayer::locolhost, BPlayer::streamPortNumber);
     }
 }
 
