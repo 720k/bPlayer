@@ -1,7 +1,6 @@
 #include "Utils.h"
 
 #include <QDebug>
-#include <unistd.h>
 #include <chrono>
 
 #ifdef Q_OS_LINUX
