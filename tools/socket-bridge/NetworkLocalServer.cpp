@@ -82,7 +82,9 @@ void NetworkLocalServer::onSocketStateChanged(QLocalSocket::LocalSocketState soc
 }
 
 void NetworkLocalServer::onSocketData() {
-    auto data = socket_->readAll();
-    print(objectName()+" Read",data );
-    emit dataReady(data);
+    while (socket_->bytesAvailable()) {
+        auto data = socket_->readAll();
+        print(objectName()+" Read",data );
+        emit dataReady(data);
+    }
 }

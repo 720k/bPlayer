@@ -61,15 +61,14 @@ QString AbstractSocket::serverName() const {
 }
 
 void AbstractSocket::readyRead() {
-    while (socket_->bytesAvailable()) {
-        stream_.startTransaction();
-        stream_ >> readBuffer_;
-        //#todo if readBuffer_ is not enough for the request?
-        if (!stream_.commitTransaction())  return; // message complete?
-        qCDebug(catSocket).noquote() << "-->" << Utils::printableBA(readBuffer_);
-        emit messageReady(readBuffer_);
-        readBuffer_.clear();
-    };
+    readBuffer_.clear();
+    qCDebug(catSocket).noquote() << "bytes avail: " << socket_->bytesAvailable();
+    stream_.startTransaction();
+    stream_ >> readBuffer_;
+    //#todo if readBuffer_ is not enough for the request?
+    if (!stream_.commitTransaction())  return; // message complete?
+    qCDebug(catSocket).noquote() << "-->" << Utils::printableBA(readBuffer_);
+    emit messageReady(readBuffer_);
 }
 
 void AbstractSocket::connected() {
