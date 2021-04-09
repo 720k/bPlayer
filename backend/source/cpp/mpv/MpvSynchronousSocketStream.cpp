@@ -43,6 +43,7 @@ void MpvSynchronousSocketStream::seekSynchronized(uint64_t offset) {
 }
 
 void MpvSynchronousSocketStream::readSynchronized(char *buf, quint64 nbytes) {
+    nbytes = qMin(nbytes, static_cast<quint64>(64*1024) ); // 64K cap!
     CON << cORG << "[READ] " << cRST << QString("%1 KiBytes   (%2)").arg(nbytes/1024.0, 0,'f',1).arg(nbytes);
     mpvReadRequestBuffer_ = buf;
     mpvReadRequestNBytes_ = nbytes;
