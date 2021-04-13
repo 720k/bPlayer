@@ -3,6 +3,8 @@
 /bplayer.pro.user.*
 /frontend/frontend.pro.user
 /frontend/frontend.pro.user.*
+/backend/backend.pro.user
+/backend/backend.pro.user.*
 
 #ingore qtcreator temporarty savings
 *.autosave

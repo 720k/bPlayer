@@ -1,3 +1,9 @@
+include($$PWD/manifest.pri)
+message( "______________________________________" )
+message( PROJECT = $${ProjectName} )
+message( VERSION = $${ProjectVersion} )
+message( QT = $$QT_VERSION )
+
 QT += core network
 QT -= gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -9,7 +15,7 @@ INCLUDEPATH += ../common
 INCLUDEPATH += ./source/cpp
 INCLUDEPATH += ./source/cpp/mpv
 
-TARGET = bplayer-backend
+TARGET = $${ProjectName}
 
 CONFIG	+= link_pkgconfig
 PKGCONFIG += mpv
@@ -68,4 +74,5 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES +=
+DISTFILES += \
+    manifest.pri
